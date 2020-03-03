@@ -1,0 +1,16 @@
+Fix "-Wrange-loop-construct" warning in clang,
+https://crbug.com/1047863
+
+diff --git a/media_driver/agnostic/common/os/mos_utilities.c b/media_driver/agnostic/common/os/mos_utilities.c
+index 3c5a963..e204e15 100644
+--- a/media_driver/agnostic/common/os/mos_utilities.c
++++ b/media_driver/agnostic/common/os/mos_utilities.c
+@@ -62,7 +62,7 @@ PerfUtility::PerfUtility()
+ 
+ PerfUtility::~PerfUtility()
+ {
+-    for (const auto data : records)
++    for (const auto& data : records)
+     {
+         if (data.second)
+         {
