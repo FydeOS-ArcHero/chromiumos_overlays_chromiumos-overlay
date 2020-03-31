@@ -16,6 +16,7 @@ RDEPEND="
 	chromeos-base/ippusb_manager
 	net-print/cups
 	net-print/cups-filters
+	internal? ( net-print/konica-minolta-printing-license )
 	internal? ( net-print/xerox-printing-license )
 	postscript? ( net-print/hplip )
 "
