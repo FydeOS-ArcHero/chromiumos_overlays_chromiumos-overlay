@@ -88,8 +88,7 @@ src_configure() {
 		--disable-obex \
 		--enable-sixaxis \
 		--disable-network \
-		--enable-maintainer-mode \
-		$(use_enable bt_deprecated_tools deprecated)
+		 $(use_enable bt_deprecated_tools deprecated)
 }
 
 src_test() {
