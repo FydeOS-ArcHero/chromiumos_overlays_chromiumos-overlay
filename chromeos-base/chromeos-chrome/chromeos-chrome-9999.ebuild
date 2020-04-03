@@ -168,7 +168,6 @@ RDEPEND="${RDEPEND}
 	accessibility? (
 		app-accessibility/brltty
 		app-accessibility/espeak-ng
-		app-accessibility/googletts
 	)
 	libcxx? (
 		sys-libs/libcxxabi
