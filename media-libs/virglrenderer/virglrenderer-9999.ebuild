@@ -34,7 +34,6 @@ DEPEND="${RDEPEND}
 
 PATCHES=(
 	"${FILESDIR}"/0001-CHROMIUM-Adjust-plane-parameter.patch
-	"${FILESDIR}"/0001-virgl-gbm-Also-convert-VIRGL_BIND_SAMPLER_VIEW.patch
 )
 
 src_prepare() {
@@ -50,7 +49,7 @@ src_configure() {
 	fi
 
 	emesonargs+=(
-		-Dgbm_allocation="true"
+		-Dminigbm_allocation="true"
 		-Dplatforms="egl"
 		$(meson_use fuzzer)
 		--buildtype $(usex debug debug release)

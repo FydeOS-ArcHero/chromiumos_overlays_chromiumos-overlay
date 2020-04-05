@@ -3,8 +3,8 @@
 
 EAPI="6"
 
-CROS_WORKON_COMMIT="3ab625d7aa4be9bbcb2bfa40dc0275c05ddabe0c"
-CROS_WORKON_TREE="d537f2259d4e2a72d5e35458d06e8d4fdb0ce7fe"
+CROS_WORKON_COMMIT="daab8d327e1dc7ffbde4f8a04ef131f0be32f36b"
+CROS_WORKON_TREE="00da6835b81ffde08214995e24e05afbc938a21d"
 CROS_WORKON_PROJECT="chromiumos/third_party/virglrenderer"
 
 # Prevent automatic uprevs of this package since upstream is out of our control.
@@ -36,7 +36,6 @@ DEPEND="${RDEPEND}
 
 PATCHES=(
 	"${FILESDIR}"/0001-CHROMIUM-Adjust-plane-parameter.patch
-	"${FILESDIR}"/0001-virgl-gbm-Also-convert-VIRGL_BIND_SAMPLER_VIEW.patch
 )
 
 src_prepare() {
@@ -52,7 +51,7 @@ src_configure() {
 	fi
 
 	emesonargs+=(
-		-Dgbm_allocation="true"
+		-Dminigbm_allocation="true"
 		-Dplatforms="egl"
 		$(meson_use fuzzer)
 		--buildtype $(usex debug debug release)
