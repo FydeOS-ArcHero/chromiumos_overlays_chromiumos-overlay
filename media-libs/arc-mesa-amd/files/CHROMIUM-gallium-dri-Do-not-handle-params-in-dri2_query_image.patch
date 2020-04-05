@@ -1,0 +1,52 @@
+From 1b3c3d709c8a0d97f5e122c07b298bc0c25dd56e Mon Sep 17 00:00:00 2001
+From: Bas Nieuwenhuizen <basni@chromium.org>
+Date: Tue, 17 Mar 2020 01:59:22 +0100
+Subject: [PATCH] gallium/dri: Do not handle params in
+ dri2_query_image_by_resource_handle
+
+These are much better handled by the get_param call, since getting
+a KMS handle isn't free on radeonsi due to cross-fd KMS handle
+management.
+
+This is hit because we query the modifier, which is going to be
+INVALID, so get_param returns false and then we try again with
+the resource handle.
+
+This works around a KMS handle management memory leak in radeonsi.
+
+Change-Id: I1368ed14d1c8a872250a7d2297dec933a9b5ff71
+---
+ src/gallium/state_trackers/dri/dri2.c | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
+
+diff --git a/src/gallium/state_trackers/dri/dri2.c b/src/gallium/state_trackers/dri/dri2.c
+index a9dbdc16abe..2da186255da 100644
+--- a/src/gallium/state_trackers/dri/dri2.c
++++ b/src/gallium/state_trackers/dri/dri2.c
+@@ -1087,6 +1087,7 @@ dri2_query_image_by_resource_handle(__DRIimage *image, int attrib, int *value)
+    switch (attrib) {
+    case __DRI_IMAGE_ATTRIB_STRIDE:
+    case __DRI_IMAGE_ATTRIB_OFFSET:
++      return false;
+    case __DRI_IMAGE_ATTRIB_HANDLE:
+       whandle.type = WINSYS_HANDLE_TYPE_KMS;
+       break;
+@@ -1097,13 +1098,10 @@ dri2_query_image_by_resource_handle(__DRIimage *image, int attrib, int *value)
+       whandle.type = WINSYS_HANDLE_TYPE_FD;
+       break;
+    case __DRI_IMAGE_ATTRIB_NUM_PLANES:
+-      *value = 1;
+-      return true;
++      return false;
+    case __DRI_IMAGE_ATTRIB_MODIFIER_UPPER:
+    case __DRI_IMAGE_ATTRIB_MODIFIER_LOWER:
+-      whandle.type = WINSYS_HANDLE_TYPE_KMS;
+-      whandle.modifier = DRM_FORMAT_MOD_INVALID;
+-      break;
++      return false;
+    default:
+       return false;
+    }
+-- 
+2.25.1.481.gfbce0eb801-goog
+

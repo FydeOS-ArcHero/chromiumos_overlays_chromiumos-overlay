@@ -4,10 +4,10 @@
 
 EAPI="6"
 
-CROS_WORKON_COMMIT="4ef9bd07c59c47dff551d6cd8e0e64fb489b04aa"
-CROS_WORKON_TREE="7ad3c68f2e6638fa01b1774fd2d0738984ef7a9b"
+CROS_WORKON_COMMIT="98da2086606c52af0f043eb5b838a3857012ca20"
+CROS_WORKON_TREE="70ca3580767be0529cf99593c94d7d7f8ef6abac"
 CROS_WORKON_PROJECT="chromiumos/third_party/mesa"
-CROS_WORKON_LOCALNAME="mesa"
+CROS_WORKON_LOCALNAME="arc-mesa"
 CROS_WORKON_BLACKLIST="1"
 
 EGIT_REPO_URI="git://anongit.freedesktop.org/mesa/mesa"
@@ -129,17 +129,37 @@ src_prepare() {
 		epatch "${FILESDIR}/gles2/0001-limit-gles-version.patch"
 	fi
 
-	epatch "${FILESDIR}"/CHROMIUM-radv-Remove-extensions-not-supported-in-P.patch
-	epatch "${FILESDIR}"/CHROMIUM-radv-Disable-extensions-not-supported-by-nd.patch
+	epatch "${FILESDIR}"/CHROMIUM-HACK-remove-unknown-android-extensions.patch
+	epatch "${FILESDIR}"/CHROMIUM-HACK-disable-unknown-device-extensions.patch
+	epatch "${FILESDIR}"/CHROMIUM-HACK-radv-disable-TC-compatible-HTILE-on-Stoney.patch
+
+	epatch "${FILESDIR}"/FROMLIST-egl-android-require-ANDROID_native_fence_sy.patch
+
+	epatch "${FILESDIR}"/FROMLIST-glsl-fix-an-incorrect-max_array_access-afte.patch
+	epatch "${FILESDIR}"/FROMLIST-glsl-fix-a-binding-points-assignment-for-ss.patch
+
+	epatch "${FILESDIR}"/FROMLIST-glcpp-Hack-to-handle-expressions-in-line-di.patch
+
+	epatch "${FILESDIR}"/CHROMIUM-radv-Disable-VK_KHR_create_renderpass2.patch
 	epatch "${FILESDIR}"/CHROMIUM-radv-Disable-1.1-on-ANDROID.patch
+	epatch "${FILESDIR}"/CHROMIUM-radv-Disable-extensions-that-are-not-supported-by-P-.patch
 	epatch "${FILESDIR}"/CHROMIUM-radv-Disable-ycbcr-support.patch
+	epatch "${FILESDIR}"/UPSTREAM-radv-Remove-_mesa_locale_init-fini-calls.patch
+	epatch "${FILESDIR}"/UPSTREAM-radv-Fix-RGBX-Android-Vulkan-format-correspondence.patch
+	epatch "${FILESDIR}"/CHROMIUM-radv-Disable-VK_KHR_shader_atomic_int64-for.patch
+	epatch "${FILESDIR}"/CHROMIUM-radv-Disable-VK_ANDROID_external_memory_and.patch
+
+	epatch "${FILESDIR}"/UPSTREAM-radeonsi-Clear-uninitialized-variable.patch
+	epatch "${FILESDIR}"/UPSTREAM-radv-Do-not-set-SX-DISABLE-bits-for-RB-with-unused-s.patch
 
 	if use android-container-pi; then
 		epatch "${FILESDIR}"/CHROMIUM-egl-Limit-to-EGL-1.4.patch
 	fi
 
-	epatch "${FILESDIR}"/UPSTREAM-egl-android-require-ANDROID_native_fence_sync-for-bu.patch
-	epatch "${FILESDIR}"/UPSTREAM-egl-android-enable-disable-KHR_partial_update-correc.patch
+	epatch "${FILESDIR}"/UPSTREAM-radeonsi-disable-dcc-for-2x-MSAA-surface-and-bpe-4.patch
+
+	# b/151392809, can be removed after an uprev to 19.3.4 or later
+	epatch "${FILESDIR}"/CHROMIUM-gallium-dri-Do-not-handle-params-in-dri2_query_image.patch
 
 	default
 }

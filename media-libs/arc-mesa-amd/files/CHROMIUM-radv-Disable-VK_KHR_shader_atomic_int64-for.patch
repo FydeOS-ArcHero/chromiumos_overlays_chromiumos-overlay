@@ -1,0 +1,31 @@
+From d7f8fa916c7785141e3b12f2f0e518da4744695e Mon Sep 17 00:00:00 2001
+From: Drew Davenport <ddavenport@chromium.org>
+Date: Wed, 15 Jan 2020 09:14:03 -0700
+Subject: [PATCH] CHROMIUM: radv: Disable VK_KHR_shader_atomic_int64 for arc++
+
+This extension is not supported in Android P
+
+BUG=b:147712952
+TEST=test_that $DUT cheets_CTS_P.x86.CtsDeqpTestCases.dEQP-VK.api
+
+Change-Id: I6f7917e498a6c4305e7ef642987db8e62edacfe9
+---
+ src/amd/vulkan/radv_extensions.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/amd/vulkan/radv_extensions.py b/src/amd/vulkan/radv_extensions.py
+index f42a3ab1abf0..f8cfe25aa7cd 100644
+--- a/src/amd/vulkan/radv_extensions.py
++++ b/src/amd/vulkan/radv_extensions.py
+@@ -86,7 +86,7 @@ EXTENSIONS = [
+     Extension('VK_KHR_relaxed_block_layout',              1, True),
+     Extension('VK_KHR_sampler_mirror_clamp_to_edge',      1, True),
+     Extension('VK_KHR_sampler_ycbcr_conversion',          1, True),
+-    Extension('VK_KHR_shader_atomic_int64',               1, 'LLVM_VERSION_MAJOR >= 9'),
++    Extension('VK_KHR_shader_atomic_int64',               1, False),
+     Extension('VK_KHR_shader_clock',                      1, False),
+     Extension('VK_KHR_shader_draw_parameters',            1, True),
+     Extension('VK_KHR_shader_float_controls',             1, False),
+-- 
+2.24.1
+

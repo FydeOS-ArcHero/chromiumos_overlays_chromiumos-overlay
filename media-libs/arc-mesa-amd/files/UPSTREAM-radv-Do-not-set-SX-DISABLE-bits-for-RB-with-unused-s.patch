@@ -1,0 +1,70 @@
+From 7724c12b0ba29d273ac621bf09cfe2819dc353ad Mon Sep 17 00:00:00 2001
+From: Bas Nieuwenhuizen <bas@basnieuwenhuizen.nl>
+Date: Thu, 30 Jan 2020 17:58:55 +0100
+Subject: [PATCH] radv: Do not set SX DISABLE bits for RB+ with unused
+ surfaces.
+
+The extra bits in CB_SHADER_MASK break dual source blending in
+SkQP on a Stoney device. However:
+
+- As far as I can tell, some other dual source blend tests are passing
+  before and after the change.
+- A hacked around skqp passes on my Vega desktop and Raven laptop
+- Getting Skqp to give any useful info or to run it outside of Android
+  on ChromeOS is proving difficult.
+
+I have confirmed 3 strategies that seem to work:
+- The old radv behavior of setting CB_SHADER_MASK to 0xF
+- AMDVLK: CB_SHADER_MASK = 0xFF, and the 3 RB+ regs
+  are 0.
+- radeonsi: CB_SHADER_MASK = 0xFF, but does not set DISABLE
+  bits in SX_BLEND_OPT_CONTROL for CB 1-7.
+
+Let us use the radeonsi solution as that solution also seems like the correct
+thing to do for holes. I have tested on my Raven laptop that setting the high
+surfaces to not disabled and downconvert to 32_R does not imply a performance
+penalty.
+
+Fixes: e9316fdfd48 "radv: fix setting CB_SHADER_MASK for dual source blending"
+Reviewed-by: Samuel Pitoiset <samuel.pitoiset@gmail.com>
+Tested-by: Marge Bot <https://gitlab.freedesktop.org/mesa/mesa/merge_requests/3670>
+Part-of: <https://gitlab.freedesktop.org/mesa/mesa/merge_requests/3670>
+(cherry picked from commit 65a6dc5139fddd5e01eaedcc57fc67e0a6a28c94)
+---
+ src/amd/vulkan/radv_cmd_buffer.c | 13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/src/amd/vulkan/radv_cmd_buffer.c b/src/amd/vulkan/radv_cmd_buffer.c
+index a172767e3dd..e5837fb06b2 100644
+--- a/src/amd/vulkan/radv_cmd_buffer.c
++++ b/src/amd/vulkan/radv_cmd_buffer.c
+@@ -1006,8 +1006,9 @@ radv_emit_rbplus_state(struct radv_cmd_buffer *cmd_buffer)
+ 
+ 	for (unsigned i = 0; i < subpass->color_count; ++i) {
+ 		if (subpass->color_attachments[i].attachment == VK_ATTACHMENT_UNUSED) {
+-			sx_blend_opt_control |= S_02875C_MRT0_COLOR_OPT_DISABLE(1) << (i * 4);
+-			sx_blend_opt_control |= S_02875C_MRT0_ALPHA_OPT_DISABLE(1) << (i * 4);
++			/* We don't set the DISABLE bits, because the HW can't have holes,
++			 * so the SPI color format is set to 32-bit 1-component. */
++			sx_ps_downconvert |= V_028754_SX_RT_EXPORT_32_R << (i * 4);
+ 			continue;
+ 		}
+ 
+@@ -1123,10 +1124,10 @@ radv_emit_rbplus_state(struct radv_cmd_buffer *cmd_buffer)
+ 		}
+ 	}
+ 
+-	for (unsigned i = subpass->color_count; i < 8; ++i) {
+-		sx_blend_opt_control |= S_02875C_MRT0_COLOR_OPT_DISABLE(1) << (i * 4);
+-		sx_blend_opt_control |= S_02875C_MRT0_ALPHA_OPT_DISABLE(1) << (i * 4);
+-	}
++	/* Do not set the DISABLE bits for the unused attachments, as that
++	 * breaks dual source blending in SkQP and does not seem to improve
++	 * performance. */
++
+ 	/* TODO: avoid redundantly setting context registers */
+ 	radeon_set_context_reg_seq(cmd_buffer->cs, R_028754_SX_PS_DOWNCONVERT, 3);
+ 	radeon_emit(cmd_buffer->cs, sx_ps_downconvert);
+-- 
+2.25.0.341.g760bfbb309-goog
+

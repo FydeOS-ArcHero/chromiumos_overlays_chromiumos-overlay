@@ -1,22 +1,21 @@
-From 9e89e772d1864503911e5f36dc744cecfa1a11bf Mon Sep 17 00:00:00 2001
-From: Gurchetan Singh <gurchetansingh@chromium.org>
-Date: Tue, 26 Mar 2019 10:39:17 -0700
-Subject: [PATCH] CHROMIUM: radv: Remove extensions not supported in P
+From 2e5aa4eb46c812a093ce53afe22eab4554e2298c Mon Sep 17 00:00:00 2001
+From: Bas Nieuwenhuizen <basni@chromium.org>
+Date: Wed, 11 Dec 2019 12:37:42 +0100
+Subject: [PATCH 1/3] radv: Disable extensions that are not supported by P CTS.
 
-Fixes dEQP-VK.api.info.android#no_unknown_extensions
-Fixes dEQP-VK.api.info.device#extensions
+dEQP-VK.api.info.device.extensions complains about new KHR
+extensions.
 
-TEST=test_that $DUT cheets_CTS_P.x86.CtsDeqpTestCases.dEQP-VK.api
+Change-Id: I5950e06faa1ea59e39f24ca8221ab0b2152210ae
 ---
- src/amd/vulkan/radv_extensions.py  | 28 ++++++++++++++--------------
- src/intel/vulkan/anv_extensions.py |  6 +++---
- 2 files changed, 17 insertions(+), 17 deletions(-)
+ src/amd/vulkan/radv_extensions.py | 20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
 diff --git a/src/amd/vulkan/radv_extensions.py b/src/amd/vulkan/radv_extensions.py
-index b7fe280187fa..231af2db5a49 100644
+index a081e2da87a..e68931bcd3c 100644
 --- a/src/amd/vulkan/radv_extensions.py
 +++ b/src/amd/vulkan/radv_extensions.py
-@@ -56,12 +56,12 @@ EXTENSIONS = [
+@@ -56,7 +56,7 @@ EXTENSIONS = [
      Extension('VK_KHR_bind_memory2',                      1, True),
      Extension('VK_KHR_create_renderpass2',                1, True),
      Extension('VK_KHR_dedicated_allocation',              1, True),
@@ -25,12 +24,6 @@ index b7fe280187fa..231af2db5a49 100644
      Extension('VK_KHR_descriptor_update_template',        1, True),
      Extension('VK_KHR_device_group',                      1, True),
      Extension('VK_KHR_device_group_creation',             1, True),
-     Extension('VK_KHR_draw_indirect_count',               1, True),
--    Extension('VK_KHR_driver_properties',                 1, True),
-+    Extension('VK_KHR_driver_properties',                 1, False),
-     Extension('VK_KHR_external_fence',                    1, 'device->rad_info.has_syncobj_wait_for_submit'),
-     Extension('VK_KHR_external_fence_capabilities',       1, True),
-     Extension('VK_KHR_external_fence_fd',                 1, 'device->rad_info.has_syncobj_wait_for_submit'),
 @@ -76,35 +76,35 @@ EXTENSIONS = [
      Extension('VK_KHR_get_physical_device_properties2',   1, True),
      Extension('VK_KHR_get_surface_capabilities2',         1, 'RADV_HAS_SURFACE'),
@@ -47,9 +40,8 @@ index b7fe280187fa..231af2db5a49 100644
      Extension('VK_KHR_relaxed_block_layout',              1, True),
      Extension('VK_KHR_sampler_mirror_clamp_to_edge',      1, True),
      Extension('VK_KHR_sampler_ycbcr_conversion',          1, True),
--    Extension('VK_KHR_shader_atomic_int64',               1, 'LLVM_VERSION_MAJOR >= 9'),
+     Extension('VK_KHR_shader_atomic_int64',               1, 'LLVM_VERSION_MAJOR >= 9'),
 -    Extension('VK_KHR_shader_clock',                      1, True),
-+    Extension('VK_KHR_shader_atomic_int64',               1, False),
 +    Extension('VK_KHR_shader_clock',                      1, False),
      Extension('VK_KHR_shader_draw_parameters',            1, True),
 -    Extension('VK_KHR_shader_float_controls',             1, '!device->use_aco'),
@@ -77,43 +69,6 @@ index b7fe280187fa..231af2db5a49 100644
      Extension('VK_EXT_direct_mode_display',               1, 'VK_USE_PLATFORM_DISPLAY_KHR'),
      Extension('VK_EXT_acquire_xlib_display',              1, 'VK_USE_PLATFORM_XLIB_XRANDR_EXT'),
      Extension('VK_EXT_buffer_device_address',             1, True),
-@@ -154,8 +154,8 @@ EXTENSIONS = [
-     Extension('VK_AMD_shader_core_properties2',           1, True),
-     Extension('VK_AMD_shader_info',                       1, True),
-     Extension('VK_AMD_shader_trinary_minmax',             1, True),
--    Extension('VK_GOOGLE_decorate_string',                1, True),
--    Extension('VK_GOOGLE_hlsl_functionality1',            1, True),
-+    Extension('VK_GOOGLE_decorate_string',                1, False),
-+    Extension('VK_GOOGLE_hlsl_functionality1',            1, False),
-     Extension('VK_NV_compute_shader_derivatives',         1, 'device->rad_info.chip_class >= GFX8'),
- ]
- 
-diff --git a/src/intel/vulkan/anv_extensions.py b/src/intel/vulkan/anv_extensions.py
-index 2c2bea1806a8..dc04a71813aa 100644
---- a/src/intel/vulkan/anv_extensions.py
-+++ b/src/intel/vulkan/anv_extensions.py
-@@ -67,18 +67,18 @@ MAX_API_VERSION = None # Computed later
- # the those extension strings, then tests dEQP-VK.api.info.instance.extensions
- # and dEQP-VK.api.info.device fail due to the duplicated strings.
- EXTENSIONS = [
--    Extension('VK_KHR_8bit_storage',                      1, 'device->info.gen >= 8'),
-+    Extension('VK_KHR_8bit_storage',                      1, False),
-     Extension('VK_KHR_16bit_storage',                     1, 'device->info.gen >= 8'),
-     Extension('VK_KHR_bind_memory2',                      1, True),
-     Extension('VK_KHR_create_renderpass2',                1, True),
-     Extension('VK_KHR_dedicated_allocation',              1, True),
--    Extension('VK_KHR_depth_stencil_resolve',             1, True),
-+    Extension('VK_KHR_depth_stencil_resolve',             1, False),
-     Extension('VK_KHR_descriptor_update_template',        1, True),
-     Extension('VK_KHR_device_group',                      1, True),
-     Extension('VK_KHR_device_group_creation',             1, True),
-     Extension('VK_KHR_display',                          23, 'VK_USE_PLATFORM_DISPLAY_KHR'),
-     Extension('VK_KHR_draw_indirect_count',               1, True),
--    Extension('VK_KHR_driver_properties',                 1, True),
-+    Extension('VK_KHR_driver_properties',                 1, False),
-     Extension('VK_KHR_external_fence',                    1,
-               'device->has_syncobj_wait'),
-     Extension('VK_KHR_external_fence_capabilities',       1, True),
 -- 
-2.24.1
+2.24.0.525.g8f36a354ae-goog
 

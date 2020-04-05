@@ -1,0 +1,30 @@
+From 11c62b8c27b6751ecd8904e9e26a2310139455d0 Mon Sep 17 00:00:00 2001
+From: Gurchetan Singh <gurchetansingh@chromium.org>
+Date: Tue, 26 Mar 2019 10:39:17 -0700
+Subject: [PATCH 1/3] HACK: remove unknown android extensions
+
+Fixes dEQP-VK.api.info.android#no_unknown_extensions
+
+Change-Id: I637400d033c4297e37bbac0354324d1cb0090959
+---
+ src/amd/vulkan/radv_extensions.py  | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/amd/vulkan/radv_extensions.py b/src/amd/vulkan/radv_extensions.py
+index 3624970dd377..b829e61adc24 100644
+--- a/src/amd/vulkan/radv_extensions.py
++++ b/src/amd/vulkan/radv_extensions.py
+@@ -145,8 +145,8 @@ EXTENSIONS = [
+     Extension('VK_AMD_shader_core_properties',            1, True),
+     Extension('VK_AMD_shader_info',                       1, True),
+     Extension('VK_AMD_shader_trinary_minmax',             1, True),
+-    Extension('VK_GOOGLE_decorate_string',                1, True),
+-    Extension('VK_GOOGLE_hlsl_functionality1',            1, True),
++    Extension('VK_GOOGLE_decorate_string',                1, False),
++    Extension('VK_GOOGLE_hlsl_functionality1',            1, False),
+     Extension('VK_NV_compute_shader_derivatives',         1, 'device->rad_info.chip_class >= GFX8'),
+ ]
+ 
+-- 
+2.21.0
+

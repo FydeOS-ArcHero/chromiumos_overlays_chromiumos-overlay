@@ -1,26 +1,24 @@
-From f3728816afbbe39a563ec02ba65f3b1516d79881 Mon Sep 17 00:00:00 2001
+From dc8b4cce41268c7c82534d88c047acde1123d97c Mon Sep 17 00:00:00 2001
 From: Chia-I Wu <olvaffe@gmail.com>
 Date: Thu, 7 Feb 2019 15:14:19 -0800
-Subject: [PATCH 1/1] egl/android: require ANDROID_native_fence_sync for buffer
- age
+Subject: [PATCH] egl/android: require ANDROID_native_fence_sync for buffer age
 
 Querying buffer age requires a buffer to be dequeued.  But dequeuing
 without ANDROID_native_fence_sync might imply eglClientWaitSync,
 which results in a deadlock as the display lock is already held by
 eglQuerySurface.
 
+Change-Id: I86b07c71a88dd13a130a94def362eb35600d9274
 Signed-off-by: Chia-I Wu <olvaffe@gmail.com>
-Tested-by: Marge Bot <https://gitlab.freedesktop.org/mesa/mesa/-/merge_requests/221>
-Part-of: <https://gitlab.freedesktop.org/mesa/mesa/-/merge_requests/221>
 ---
- src/egl/drivers/dri2/platform_android.c | 13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ src/egl/drivers/dri2/platform_android.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
 diff --git a/src/egl/drivers/dri2/platform_android.c b/src/egl/drivers/dri2/platform_android.c
-index da90c44d601d..8973017324bd 100644
+index dda38d672653..dd8c4bff278e 100644
 --- a/src/egl/drivers/dri2/platform_android.c
 +++ b/src/egl/drivers/dri2/platform_android.c
-@@ -1645,7 +1645,18 @@ dri2_initialize_android(_EGLDriver *drv, _EGLDisplay *disp)
+@@ -1606,7 +1606,15 @@ dri2_initialize_android(_EGLDriver *drv, _EGLDisplay *disp)
     disp->Extensions.ANDROID_framebuffer_target = EGL_TRUE;
     disp->Extensions.ANDROID_image_native_buffer = EGL_TRUE;
     disp->Extensions.ANDROID_recordable = EGL_TRUE;
@@ -32,14 +30,11 @@ index da90c44d601d..8973017324bd 100644
 +    */
 +   if (disp->Extensions.ANDROID_native_fence_sync) {
 +      disp->Extensions.EXT_buffer_age = EGL_TRUE;
-+#if ANDROID_API_LEVEL >= 23
-+      disp->Extensions.KHR_partial_update = EGL_TRUE;
-+#endif
 +   }
 +
     disp->Extensions.KHR_image = EGL_TRUE;
  #if ANDROID_API_LEVEL >= 24
     if (dri2_dpy->mutable_render_buffer &&
 -- 
-2.24.1
+2.21.0
 

@@ -1,0 +1,47 @@
+From 2e314674c2785083f60b89e6dd53232ee0121a74 Mon Sep 17 00:00:00 2001
+From: Bas Nieuwenhuizen <bas@basnieuwenhuizen.nl>
+Date: Thu, 31 Oct 2019 02:33:46 +0100
+Subject: [PATCH] radv: Remove _mesa_locale_init/fini calls.
+
+The resulting locale is not used for Vulkan, and it is not reference
+counted, giving issues when multiple instances are created.
+
+CC: 19.2 19.3 <mesa-stable@lists.freedesktop.org>
+Reviewed-by: Lionel Landwerlin <lionel.g.landwerlin@intel.com>
+Reviewed-by: Samuel Pitoiset <samuel.pitoiset@gmail.com>
+(cherry picked from commit 344ba56b0f36e77c3d4a935717854f1bf8000a2e)
+---
+ src/amd/vulkan/radv_device.c | 3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/src/amd/vulkan/radv_device.c b/src/amd/vulkan/radv_device.c
+index 0ab421b2377..fef5cab6ff2 100644
+--- a/src/amd/vulkan/radv_device.c
++++ b/src/amd/vulkan/radv_device.c
+@@ -47,7 +47,6 @@
+ #include "radv_shader.h"
+ #include "radv_cs.h"
+ #include "util/disk_cache.h"
+-#include "util/strtod.h"
+ #include "vk_util.h"
+ #include <xf86drm.h>
+ #include <amdgpu.h>
+@@ -682,7 +681,6 @@ VkResult radv_CreateInstance(
+ 					 VK_SYSTEM_ALLOCATION_SCOPE_INSTANCE);
+ 	instance->engineVersion = engine_version;
+ 
+-	_mesa_locale_init();
+ 	glsl_type_singleton_init_or_ref();
+ 
+ 	VG(VALGRIND_CREATE_MEMPOOL(instance, 0, false));
+@@ -713,7 +711,6 @@ void radv_DestroyInstance(
+ 	VG(VALGRIND_DESTROY_MEMPOOL(instance));
+ 
+ 	glsl_type_singleton_decref();
+-	_mesa_locale_fini();
+ 
+ 	driDestroyOptionCache(&instance->dri_options);
+ 	driDestroyOptionInfo(&instance->available_dri_options);
+-- 
+2.24.0.525.g8f36a354ae-goog
+

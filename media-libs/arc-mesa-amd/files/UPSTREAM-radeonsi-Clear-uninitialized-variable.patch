@@ -1,0 +1,33 @@
+From 0d99ff54cc3fb1dd85044f8971f6686138a5f149 Mon Sep 17 00:00:00 2001
+From: Drew Davenport <ddavenport@chromium.org>
+Date: Mon, 27 Jan 2020 11:13:19 -0700
+Subject: [PATCH] radeonsi: Clear uninitialized variable
+
+|view| was not initialized leading to flaky test failures in SkQP
+test unitTest_ES2BlendWithNoTexture.
+
+Fixes: 029bfa3d253 "radeonsi: add ability to bind images as image buffers"
+
+Reviewed-by: Bas Nieuwenhuizen <bas@basnieuwenhuizen.nl>
+Tested-by: Marge Bot <https://gitlab.freedesktop.org/mesa/mesa/merge_requests/3592>
+Part-of: <https://gitlab.freedesktop.org/mesa/mesa/merge_requests/3592>
+---
+ src/gallium/drivers/radeonsi/si_descriptors.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/gallium/drivers/radeonsi/si_descriptors.c b/src/gallium/drivers/radeonsi/si_descriptors.c
+index 193029820e54..fa2174bac5d0 100644
+--- a/src/gallium/drivers/radeonsi/si_descriptors.c
++++ b/src/gallium/drivers/radeonsi/si_descriptors.c
+@@ -903,7 +903,7 @@ void si_update_ps_colorbuf0_slot(struct si_context *sctx)
+ 
+ 	if (surf) {
+ 		struct si_texture *tex = (struct si_texture*)surf->texture;
+-		struct pipe_image_view view;
++		struct pipe_image_view view = {0};
+ 
+ 		assert(tex);
+ 		assert(!tex->is_depth);
+-- 
+2.24.1
+

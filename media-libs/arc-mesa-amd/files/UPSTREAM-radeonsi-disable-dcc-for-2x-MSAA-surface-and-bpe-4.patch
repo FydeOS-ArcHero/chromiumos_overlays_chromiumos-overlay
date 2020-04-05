@@ -1,0 +1,40 @@
+From 0e286f6cbf34206e0f243895e9b125ae1d08ca75 Mon Sep 17 00:00:00 2001
+From: Pierre-Eric Pelloux-Prayer <pierre-eric.pelloux-prayer@amd.com>
+Date: Fri, 13 Dec 2019 17:38:27 +0100
+Subject: [PATCH 1/2] radeonsi: disable dcc for 2x MSAA surface and bpe < 4
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+This fixes a series of dEQP tests on Raven platforms:
+  - dEQP-GLES3.functional.fbo.msaa.2_samples.rgba4
+  - dEQP-GLES3.functional.fbo.msaa.2_samples.rgb5_a1
+  - dEQP-GLES3.functional.fbo.msaa.2_samples.rgb565
+  - dEQP-GLES3.functional.fbo.msaa.2_samples.rg8
+  - dEQP-GLES3.functional.fbo.msaa.2_samples.r16f
+
+Reviewed-by: Marek Olšák <marek.olsak@amd.com>
+Tested-by: Marge Bot <https://gitlab.freedesktop.org/mesa/mesa/merge_requests/3090>
+Part-of: <https://gitlab.freedesktop.org/mesa/mesa/merge_requests/3090>
+---
+ src/gallium/drivers/radeonsi/si_texture.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/gallium/drivers/radeonsi/si_texture.c b/src/gallium/drivers/radeonsi/si_texture.c
+index 161d0db7d4f..4913203c628 100644
+--- a/src/gallium/drivers/radeonsi/si_texture.c
++++ b/src/gallium/drivers/radeonsi/si_texture.c
+@@ -293,7 +293,9 @@ static int si_init_surface(struct si_screen *sscreen,
+ 
+ 	/* GFX9: DCC clear for 4x and 8x MSAA textures unimplemented. */
+ 	if (sscreen->info.chip_class == GFX9 &&
+-	    ptex->nr_storage_samples >= 4)
++	    (ptex->nr_storage_samples >= 4 ||
++	     (sscreen->info.family == CHIP_RAVEN &&
++	      ptex->nr_storage_samples >= 2 && bpe < 4)))
+ 		flags |= RADEON_SURF_DISABLE_DCC;
+ 
+ 	/* TODO: GFX10: DCC causes corruption with MSAA. */
+-- 
+2.17.1
+

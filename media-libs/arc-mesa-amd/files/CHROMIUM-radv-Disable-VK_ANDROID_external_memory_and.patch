@@ -1,21 +1,24 @@
-From 37a7674c00f49ec9af418bf0438a88422c582a9d Mon Sep 17 00:00:00 2001
+From 35a93ad4dd3a820d0a9eff5d49b76846026d27f8 Mon Sep 17 00:00:00 2001
 From: Drew Davenport <ddavenport@chromium.org>
-Date: Sat, 14 Mar 2020 14:19:28 -0600
-Subject: [PATCH] CHROMIUM: radv: Disable extensions not supported by
- ndktranslation
+Date: Thu, 16 Jan 2020 17:02:09 -0700
+Subject: [PATCH] CHROMIUM: radv: Disable
+ VK_ANDROID_external_memory_android_hardware_buffer
 
+This is not supported in ndktranslation, so disable it.
+
+BUG=b:147836912
 TEST=dEQP-VK.api passes on grunt
 
-Change-Id: Ic3ad9fb149d68c7c7979fb281b8f2a56ec442188
+Change-Id: I842cb9ff5c452cdf356d773a640d415d42edc25c
 ---
- src/amd/vulkan/radv_extensions.py | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ src/amd/vulkan/radv_extensions.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/src/amd/vulkan/radv_extensions.py b/src/amd/vulkan/radv_extensions.py
-index 231af2db5a49..2cfe645d9936 100644
+index f8cfe25aa7cd..e83308fa3465 100644
 --- a/src/amd/vulkan/radv_extensions.py
 +++ b/src/amd/vulkan/radv_extensions.py
-@@ -50,11 +50,11 @@ class Extension:
+@@ -50,7 +50,7 @@ class Extension:
  # the those extension strings, then tests dEQP-VK.api.info.instance.extensions
  # and dEQP-VK.api.info.device fail due to the duplicated strings.
  EXTENSIONS = [
@@ -24,11 +27,6 @@ index 231af2db5a49..2cfe645d9936 100644
      Extension('VK_ANDROID_native_buffer',                 5, 'ANDROID && device->rad_info.has_syncobj_wait_for_submit'),
      Extension('VK_KHR_16bit_storage',                     1, '!device->use_aco'),
      Extension('VK_KHR_bind_memory2',                      1, True),
--    Extension('VK_KHR_create_renderpass2',                1, True),
-+    Extension('VK_KHR_create_renderpass2',                1, False),
-     Extension('VK_KHR_dedicated_allocation',              1, True),
-     Extension('VK_KHR_depth_stencil_resolve',             1, False),
-     Extension('VK_KHR_descriptor_update_template',        1, True),
 -- 
 2.24.1
 

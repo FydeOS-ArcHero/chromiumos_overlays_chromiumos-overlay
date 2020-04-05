@@ -1,0 +1,31 @@
+From 2851b6be3bab56ced298da94088efadd9d682e5c Mon Sep 17 00:00:00 2001
+From: Bas Nieuwenhuizen <bas@basnieuwenhuizen.nl>
+Date: Tue, 10 Dec 2019 16:53:56 +0100
+Subject: [PATCH 2/3] radv: Fix RGBX Android<->Vulkan format correspondence.
+
+This is correct per the Vulkan spec format equivalence table.
+
+Fixes: f36b52740a0 "radv/android: Add android hardware buffer queries."
+Reviewed-by: Eric Anholt <eric@anholt.net>
+(cherry picked from commit 2e44bfc14f5c2e44ed820257615c2008955bc5bf)
+---
+ src/amd/vulkan/radv_android.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/amd/vulkan/radv_android.c b/src/amd/vulkan/radv_android.c
+index cd4587d5af1..875cdb50d08 100644
+--- a/src/amd/vulkan/radv_android.c
++++ b/src/amd/vulkan/radv_android.c
+@@ -392,8 +392,8 @@ vk_format_from_android(unsigned android_format, unsigned android_usage)
+ {
+ 	switch (android_format) {
+ 	case AHARDWAREBUFFER_FORMAT_R8G8B8A8_UNORM:
+-		return VK_FORMAT_R8G8B8A8_UNORM;
+ 	case AHARDWAREBUFFER_FORMAT_R8G8B8X8_UNORM:
++		return VK_FORMAT_R8G8B8A8_UNORM;
+ 	case AHARDWAREBUFFER_FORMAT_R8G8B8_UNORM:
+ 		return VK_FORMAT_R8G8B8_UNORM;
+ 	case AHARDWAREBUFFER_FORMAT_R5G6B5_UNORM:
+-- 
+2.24.0.525.g8f36a354ae-goog
+

@@ -126,17 +126,34 @@ src_prepare() {
 		epatch "${FILESDIR}/gles2/0001-limit-gles-version.patch"
 	fi
 
-	epatch "${FILESDIR}"/CHROMIUM-radv-Remove-extensions-not-supported-in-P.patch
-	epatch "${FILESDIR}"/CHROMIUM-radv-Disable-extensions-not-supported-by-nd.patch
+	epatch "${FILESDIR}"/CHROMIUM-HACK-remove-unknown-android-extensions.patch
+	epatch "${FILESDIR}"/CHROMIUM-HACK-disable-unknown-device-extensions.patch
+	epatch "${FILESDIR}"/CHROMIUM-HACK-radv-disable-TC-compatible-HTILE-on-Stoney.patch
+
+	epatch "${FILESDIR}"/FROMLIST-egl-android-require-ANDROID_native_fence_sy.patch
+
+	epatch "${FILESDIR}"/FROMLIST-glsl-fix-an-incorrect-max_array_access-afte.patch
+	epatch "${FILESDIR}"/FROMLIST-glsl-fix-a-binding-points-assignment-for-ss.patch
+	# TODO(ihf): Delete this patch once we have a CTS bundle > 9.0 R11 removing
+	# the tests (b/146024257).
+	epatch "${FILESDIR}"/FROMLIST-glcpp-Hack-to-handle-expressions-in-line-di.patch
+
+	epatch "${FILESDIR}"/CHROMIUM-radv-Disable-VK_KHR_create_renderpass2.patch
 	epatch "${FILESDIR}"/CHROMIUM-radv-Disable-1.1-on-ANDROID.patch
+	epatch "${FILESDIR}"/CHROMIUM-radv-Disable-extensions-that-are-not-supported-by-P-.patch
 	epatch "${FILESDIR}"/CHROMIUM-radv-Disable-ycbcr-support.patch
+	epatch "${FILESDIR}"/UPSTREAM-radv-Remove-_mesa_locale_init-fini-calls.patch
+	epatch "${FILESDIR}"/UPSTREAM-radv-Fix-RGBX-Android-Vulkan-format-correspondence.patch
+	epatch "${FILESDIR}"/CHROMIUM-radv-Disable-VK_KHR_shader_atomic_int64-for.patch
+	epatch "${FILESDIR}"/CHROMIUM-radv-Disable-VK_ANDROID_external_memory_and.patch
+
+	epatch "${FILESDIR}"/UPSTREAM-radeonsi-Clear-uninitialized-variable.patch
+	epatch "${FILESDIR}"/UPSTREAM-radv-Do-not-set-SX-DISABLE-bits-for-RB-with-unused-s.patch
+
 
 	if use android-container-pi; then
 		epatch "${FILESDIR}"/CHROMIUM-egl-Limit-to-EGL-1.4.patch
 	fi
-
-	epatch "${FILESDIR}"/UPSTREAM-egl-android-require-ANDROID_native_fence_sync-for-bu.patch
-	epatch "${FILESDIR}"/UPSTREAM-egl-android-enable-disable-KHR_partial_update-correc.patch
 
 	default
 }
