@@ -9,6 +9,7 @@ cros_pre_src_prepare_brltty_config() {
 	epatch "${FILESDIR}"/${P}-sysmacros.patch
 	epatch "${FILESDIR}"/${P}-tty0-openflags.patch
 	epatch "${FILESDIR}"/${P}-udev-run-script.patch
+	epatch "${FILESDIR}"/${P}-use-poll-rather-than-select.patch
 }
 
 cros_post_src_prepare_brltty_config() {

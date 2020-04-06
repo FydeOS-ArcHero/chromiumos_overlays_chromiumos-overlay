@@ -1,0 +1,159 @@
+These fixes make brltty use the poll system call rather than select. This patch
+contains three commits from brltty-6.1.
+
+Commit 642aca060df11ea3999837dede3934048487a7ed
+brlapi: Check that we do not have too many files open
+
+FD_SET would otherwise just crash, instead of returning an error.
+
+Commit 9d11a79ea1f048ecf8b07e5b7feae9b3a06c0c4d    
+brlapi: Use poll() when it is available
+
+This allows to escape the FD_SETSIZE hardcoded limitation.
+
+Commit 9e136bf66a2e0c354319ae1ab59940cc16cdfa2a
+brlapi: Add and fix endif comments
+
+diff --git a/Programs/brlapi_client.c b/Programs/brlapi_client.c
+index c93d8dab6..f0979815a 100644
+--- a/Programs/brlapi_client.c
++++ b/Programs/brlapi_client.c
+@@ -66,6 +66,9 @@
+ #ifdef HAVE_SYS_SELECT_H
+ #include <sys/select.h>
+ #endif /* HAVE_SYS_SELECT_H */
++#ifdef HAVE_SYS_POLL_H
++#include <sys/poll.h>
++#endif /* HAVE_SYS_POLL_H */
+ #endif /* __MINGW32__ */
+ 
+ #include <sys/time.h>
+@@ -342,6 +345,20 @@ static ssize_t brlapi__doWaitForPacket(brlapi_handle_t *handle, brlapi_packetTyp
+ 
+     if (dw == WAIT_OBJECT_0)
+ #else /* __MINGW32__ */
++#ifdef HAVE_POLL
++    struct pollfd pollfd;
++
++    pollfd.fd = handle->fileDescriptor;
++    pollfd.events = POLLIN;
++    pollfd.revents = 0;
++
++    if (poll(&pollfd, 1, deadline ? delay : -1) < 0) {
++      LibcError("waiting for packet");
++      return -2;
++    }
++
++    if (pollfd.revents & POLLIN)
++#else /* HAVE_POLL */
+     fd_set sockset;
+     struct timeval timeout, *ptimeout = NULL;
+     if (deadline) {
+@@ -358,6 +375,7 @@ static ssize_t brlapi__doWaitForPacket(brlapi_handle_t *handle, brlapi_packetTyp
+     }
+ 
+     if (FD_ISSET(handle->fileDescriptor, &sockset))
++#endif /* !HAVE_POLL */
+ #endif /* __MINGW32__ */
+     {
+       /* Some data is here, read it */
+@@ -627,6 +645,16 @@ static int tryHost(brlapi_handle_t *handle, char *hostAndPort) {
+         goto outlibc;
+       }
+ 
++#if !defined(HAVE_POLL)
++      if (sockfd >= FD_SETSIZE) {
++	/* Will not be able to call select() on this */
++	closeFileDescriptor(sockfd);
++	brlapi_errfun="socket";
++	setErrno(EMFILE);
++	goto outlibc;
++      }
++#endif /* !HAVE_POLL */
++
+       sa.sun_family = AF_LOCAL;
+       memcpy(sa.sun_path,BRLAPI_SOCKETPATH "/",lpath+1);
+       memcpy(sa.sun_path+lpath+1,port,lport+1);
+@@ -667,6 +695,17 @@ static int tryHost(brlapi_handle_t *handle, char *hostAndPort) {
+     for(cur = res; cur; cur = cur->ai_next) {
+       sockfd = socket(cur->ai_family, cur->ai_socktype, cur->ai_protocol);
+       if (sockfd<0) continue;
++
++#if !defined(__MINGW32__) && !defined(HAVE_POLL)
++      if (sockfd >= FD_SETSIZE) {
++	/* Will not be able to call select() on this */
++	closeFileDescriptor(sockfd);
++	brlapi_errfun="socket";
++	setErrno(EMFILE);
++	goto outlibc;
++      }
++#endif /* !__MINGW32__ && !HAVE_POLL */
++
+       if (connect(sockfd, cur->ai_addr, cur->ai_addrlen)<0) {
+         closeSocketDescriptor(sockfd);
+         continue;
+@@ -738,6 +777,17 @@ static int tryHost(brlapi_handle_t *handle, char *hostAndPort) {
+       setSocketErrno();
+       goto outlibc;
+     }
++
++#if !defined(__MINGW32__) && !defined(HAVE_POLL)
++    if (sockfd >= FD_SETSIZE) {
++      /* Will not be able to call select() on this */
++      closeFileDescriptor(sockfd);
++      brlapi_errfun="socket";
++      setErrno(EMFILE);
++      goto outlibc;
++    }
++#endif /* !__MINGW32__ && !HAVE_POLL */
++
+     if (connect(sockfd, (struct sockaddr *) &addr, sizeof(addr))<0) {
+       brlapi_errfun = "connect";
+       setSocketErrno();
+diff --git a/Programs/brlapi_server.c b/Programs/brlapi_server.c
+index 392940629..41b25f39e 100644
+--- a/Programs/brlapi_server.c
++++ b/Programs/brlapi_server.c
+@@ -2291,6 +2291,16 @@ THREAD_FUNCTION(runServer) {
+             continue;
+           }
+ 
++#ifndef __MINGW32__
++          if (resfd >= FD_SETSIZE) {
++            /* Will not be able to call select() on this */
++            setErrno(EMFILE);
++            logMessage(LOG_WARNING,"accept(%"PRIfd"): %s",socketInfo[i].fd,strerror(errno));
++            continue;
++          }
++
++#endif /* !__MINGW32__ */
++
+           formatAddress(source, sizeof(source), &addr, addrlen);
+ #ifdef __MINGW32__
+         }
+diff --git a/config.h.in b/config.h.in
+index 77f4fd558..46e087ea0 100644
+--- a/config.h.in
++++ b/config.h.in
+@@ -143,6 +143,9 @@ extern "C" {
+ 
+ /* Define this if the function select exists. */
+ #undef HAVE_SELECT
++
++/* Define this if the function poll exists. */
++#undef HAVE_POLL
+ #endif /* __MINGW32__ */
+ 
+ /* Define this if the header file signal.h exists. */
+diff --git a/configure.ac b/configure.ac
+index 94b12b924..ca3b17c71 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -825,6 +825,7 @@ AC_CHECK_DECLS([localtime_r], [], [], [dnl
+ 
+ AC_CHECK_HEADERS([sys/poll.h sys/select.h sys/wait.h])
+ AC_CHECK_FUNCS([select])
++AC_CHECK_FUNCS([poll])
+ 
+ AC_CHECK_HEADERS([signal.h sys/signalfd.h])
+ AC_CHECK_FUNCS([sigaction])
