@@ -3,7 +3,7 @@
 
 # Change this version number when any change is made to configs/files under
 # coreboot and an auto-revbump is required.
-# VERSION=REVBUMP-0.0.61
+# VERSION=REVBUMP-0.0.62
 
 EAPI=7
 CROS_WORKON_PROJECT=(

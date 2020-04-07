@@ -31,7 +31,7 @@ CONFIG_FSP_S_FILE="3rdparty/blobs/baseboard-octopus/fsp/FSP-S.Fv"
 CONFIG_FSP_HEADER_PATH="3rdparty/blobs/baseboard-octopus/fsp/"
 CONFIG_INTEL_GMA_ADD_VBT=y
 CONFIG_RUN_FSP_GOP=y
-CONFIG_INTEL_GMA_VBT_FILE="3rdparty/blobs/baseboard-octopus/vbt.bin"
+CONFIG_INTEL_GMA_VBT_FILE="3rdparty/blobs/baseboard-octopus/vbt-dood.bin"
 
 # SPI Descriptor
 CONFIG_HAVE_IFD_BIN=y
