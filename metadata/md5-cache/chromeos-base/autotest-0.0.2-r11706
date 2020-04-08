@@ -1,0 +1,14 @@
+BDEPEND=dev-vcs/git
+DEFINED_PHASES=info install postinst prepare setup test unpack
+DEPEND=!<chromeos-base/autotest-chrome-0.0.1-r1788 !<chromeos-base/autotest-tests-0.0.1-r3291 !<chromeos-base/autotest-deps-0.0.2 virtual/autotest-libs virtual/autotest-assistant-libs
+DESCRIPTION=Autotest scripts and tools
+EAPI=7
+HOMEPAGE=http://www.chromium.org/
+IUSE=cros_host cros_workon_tree_960933842e14cfaadad7db41f686adfc850a3a9e
+KEYWORDS=*
+LICENSE=GPL-2
+PROPERTIES=live
+RDEPEND=!<chromeos-base/autotest-chrome-0.0.1-r1788 !<chromeos-base/autotest-tests-0.0.1-r3291 !<chromeos-base/autotest-deps-0.0.2 virtual/autotest-libs virtual/autotest-assistant-libs
+SLOT=0
+_eclasses_=cros-constants	bf71cd1168b6441b64a8cdbc06c36eda	cros-credentials	4fd98ebbff6a1534ca9a89547e13dc92	cros-workon	a472e157d58fc9e2b928bb2c3ae2e6f2	eutils	06133990e861be0fe60c2b428fd025d9	flag-o-matic	5d5921a298e95441da2f85be419894c0	git-2	c7c0b5bffd28d4d0b3c7816c7980250f	multilib	b2f01ad412baf81650c23fcf0975fa33	toolchain-funcs	3cb0797c46fb39c3e7c1aa9962ba6848
+_md5_=78be77a572fede5d9a150590eade32d2
