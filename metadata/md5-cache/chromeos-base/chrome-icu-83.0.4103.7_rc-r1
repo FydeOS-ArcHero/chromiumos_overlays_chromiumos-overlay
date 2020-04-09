@@ -1,0 +1,13 @@
+DEFINED_PHASES=compile configure install prepare setup unpack
+DEPEND=net-print/cups
+DESCRIPTION=The ICU library copied from chrome/third_party
+EAPI=5
+HOMEPAGE=https://cs.chromium.org/chromium/src/third_party/icu/
+IUSE=asan chrome_internal component_build cups +libcxx msan neon +runhooks +thinlto ubsan verbose chrome_internal asan coverage fuzzer msan tsan ubsan
+KEYWORDS=*
+LICENSE=BSD
+RDEPEND=!dev-libs/icu
+RESTRICT=network-sandbox mirror
+SLOT=0/83.0.4103.7_rc-r1
+_eclasses_=binutils-funcs	6207477a739f6f25d13da27b9cc00160	chromium-source	7c222f2152b0c931fcd2f0ea73543133	cros-constants	bf71cd1168b6441b64a8cdbc06c36eda	cros-credentials	4fd98ebbff6a1534ca9a89547e13dc92	cros-sanitizers	68fd6af9813658a590887ca09efa2444	eutils	06133990e861be0fe60c2b428fd025d9	flag-o-matic	5d5921a298e95441da2f85be419894c0	multilib	b2f01ad412baf81650c23fcf0975fa33	python-any-r1	4900ae970f827a22d33d41bd8b8f9ace	python-utils-r1	931c328767d245c08a16a3f87be9ce9c	toolchain-funcs	3cb0797c46fb39c3e7c1aa9962ba6848
+_md5_=bedd4486da5e00051197d46279c69935

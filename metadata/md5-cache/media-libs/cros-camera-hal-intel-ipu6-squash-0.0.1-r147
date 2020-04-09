@@ -1,0 +1,13 @@
+BDEPEND=dev-vcs/git dev-vcs/git dev-vcs/git
+DEFINED_PHASES=compile configure info install setup test unpack
+DEPEND=dev-libs/expat media-libs/cros-camera-libcbm media-libs/cros-camera-libcamera_client media-libs/cros-camera-libcamera_common media-libs/cros-camera-libcamera_exif media-libs/cros-camera-libcamera_metadata media-libs/cros-camera-libcamera_v4l2_device media-libs/libyuv media-libs/libsync media-libs/cros-camera-libcab sys-kernel/linux-headers media-libs/cros-camera-android-headers virtual/jpeg:0 virtual/pkgconfig chromeos-base/libchrome:=[cros-debug=] cros_host? ( dev-util/gn ) dev-cpp/gtest:= chromeos-base/libchrome:=[cros-debug=] cros_host? ( dev-util/gn ) dev-cpp/gtest:=
+DESCRIPTION=Intel IPU6 (Image Processing Unit) Chrome OS camera HAL
+EAPI=7
+IUSE=ipu6 ipu6se cros-debug fuzzer asan coverage fuzzer msan tsan ubsan cros_host cros_workon_tree_783fb28a791c98294593701c980f13e0553c2f24 cros-debug cros_host test cros_host cros_workon_tree_783fb28a791c98294593701c980f13e0553c2f24 cros-debug cros_host cros_workon_tree_783fb28a791c98294593701c980f13e0553c2f24 cros-debug cros_host test
+KEYWORDS=*
+LICENSE=Apache-2.0
+PROPERTIES=live live live
+RDEPEND=dev-libs/expat media-libs/cros-camera-libcbm media-libs/cros-camera-libcamera_client media-libs/cros-camera-libcamera_common media-libs/cros-camera-libcamera_exif media-libs/cros-camera-libcamera_metadata media-libs/cros-camera-libcamera_v4l2_device media-libs/libyuv media-libs/libsync chromeos-base/libchrome:=[cros-debug=] chromeos-base/libbrillo:= chromeos-base/libchrome:=[cros-debug=] chromeos-base/libbrillo:=
+SLOT=0
+_eclasses_=cros-camera	2e72accfc9951162ed4923d9a4befcd5	cros-constants	bf71cd1168b6441b64a8cdbc06c36eda	cros-credentials	4fd98ebbff6a1534ca9a89547e13dc92	cros-debug	d2750757005d6a444f8eb12bb9eb9944	cros-fuzzer	b480bfcdd51a928c9a2254c6641649a2	cros-sanitizers	68fd6af9813658a590887ca09efa2444	cros-workon	a472e157d58fc9e2b928bb2c3ae2e6f2	eutils	06133990e861be0fe60c2b428fd025d9	flag-o-matic	5d5921a298e95441da2f85be419894c0	git-2	c7c0b5bffd28d4d0b3c7816c7980250f	libchrome	264ee4961c194da1b60bf0cc373161bc	libchrome-version	9a62429c3e83cd30e646292329521f7d	multilib	b2f01ad412baf81650c23fcf0975fa33	multiprocessing	e32940a7b2a9992ad217eccddb84d548	platform	95366e64a66d9dfb640463729d95b745	toolchain-funcs	3cb0797c46fb39c3e7c1aa9962ba6848
+_md5_=15001659149f61860443e98a0025b42e
