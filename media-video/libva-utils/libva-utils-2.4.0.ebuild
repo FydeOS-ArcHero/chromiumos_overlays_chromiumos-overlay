@@ -50,8 +50,6 @@ DOCS=( CONTRIBUTING.md README.md )
 
 src_prepare() {
 	epatch "${FILESDIR}"/0001-Add-a-flag-to-build-vendor.patch
-	# Remove after https://github.com/intel/libva-utils/pull/185 lands.
-	epatch "${FILESDIR}"/0002-Ifdef-va_x11-in-VP-sample-for-usrptr.patch
 
 	sed -e 's/-Werror//' -i test/Makefile.am || die
 	autotools-utils_src_prepare
