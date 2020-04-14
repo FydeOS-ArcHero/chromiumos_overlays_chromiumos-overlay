@@ -47,7 +47,6 @@ PATCHES=(
 	"${FILESDIR}"/0001-Encoder-VP8-GEN9-GEN10-GEN11-Ensure-forced_lf_adjust.patch
 	"${FILESDIR}"/0002-Disable-IPC-usage.patch
 	"${FILESDIR}"/0003-Partially-revert-VP-Fix-aux-mapping-issue.patch
-	"${FILESDIR}"/0004-Fix-Clang-Warning.patch
 )
 
 src_configure() {
