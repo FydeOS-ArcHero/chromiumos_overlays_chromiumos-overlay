@@ -79,9 +79,10 @@ MULTILIB_WRAPPED_HEADERS=(
 )
 
 src_prepare() {
-	# After this https://github.com/intel/libva/pull/369 is merged
+	# After this https://github.com/intel/libva/pull/245 is merged
 	# below patch will not be needed
-	epatch "${FILESDIR}"/0001-Return-error-when-no-va-devices-available.patch
+	use video_cards_iHD && epatch "${FILESDIR}"/0001-Replace-i965-with-iHD-driver.patch
+	epatch "${FILESDIR}"/0002-Add-return-value-into-logs.patch
 
 	autotools-utils_src_prepare
 }

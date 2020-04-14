@@ -22,3 +22,6 @@
 =sys-devel/llvm-15.0_pre*
 =sys-devel/llvm-16.0_pre*
 =sys-devel/llvm-17.0_pre*
+
+# https://crbug.com/1050510
+=x11-libs/libva-2.6.0*
