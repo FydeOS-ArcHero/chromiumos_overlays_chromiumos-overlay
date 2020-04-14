@@ -32,6 +32,10 @@ IUSE=""
 DEPEND=""
 RDEPEND="${DEPEND}"
 
+PATCHES=(
+	"${FILESDIR}"/0001-Provide-full-path-to-the-GMMULT-executable.patch
+)
+
 src_configure() {
 	local mycmakeargs=(
 		-DRUN_TEST_SUITE=OFF
