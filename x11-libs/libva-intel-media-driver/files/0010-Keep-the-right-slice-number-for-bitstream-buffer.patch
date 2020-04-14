@@ -1,0 +1,32 @@
+From eee41b7da1dcd8b168dd7c8e5997d4c41e4674ce Mon Sep 17 00:00:00 2001
+From: Yan Wang <yan.wang@linux.intel.com>
+Date: Fri, 15 Mar 2019 10:54:25 +0800
+Subject: [PATCH] Keep the right slice number for bitstream buffer.
+
+When destroy bitstream buffer, it should decrease
+bufMgr->dwNumSliceData.
+
+PR - https://github.com/intel/media-driver/pull/562
+
+Signed-off-by: Yan Wang <yan.wang@linux.intel.com>
+Signed-off-by: XinfengZhang <carl.zhang@intel.com>
+---
+ media_driver/linux/common/ddi/media_libva.cpp | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/media_driver/linux/common/ddi/media_libva.cpp b/media_driver/linux/common/ddi/media_libva.cpp
+index d15d3026..b79569ce 100755
+--- a/media_driver/linux/common/ddi/media_libva.cpp
++++ b/media_driver/linux/common/ddi/media_libva.cpp
+@@ -280,6 +280,11 @@ static bool DdiMedia_ReleaseBsBuffer(
+         }
+         return false;
+     }
++    else
++    {
++        if (bufMgr->dwNumSliceData)
++            bufMgr->dwNumSliceData--;
++    }
+     return true;
+ }
+ 

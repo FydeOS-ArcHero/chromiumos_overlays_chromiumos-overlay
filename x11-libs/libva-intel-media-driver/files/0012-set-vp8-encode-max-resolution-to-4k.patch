@@ -1,0 +1,52 @@
+From 5f1c92709c52d342e8b88522a83f8287aad3a150 Mon Sep 17 00:00:00 2001
+From: XinfengZhang <carl.zhang@intel.com>
+Date: Wed, 20 Mar 2019 12:47:18 -0400
+Subject: [PATCH] set vp8 encode max resolution to 4k
+
+fixes #565
+
+Signed-off-by: XinfengZhang <carl.zhang@intel.com>
+---
+ media_driver/linux/common/ddi/media_libva_caps.cpp | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/media_driver/linux/common/ddi/media_libva_caps.cpp b/media_driver/linux/common/ddi/media_libva_caps.cpp
+index be9c0f582..e12b4c28d 100644
+--- a/media_driver/linux/common/ddi/media_libva_caps.cpp
++++ b/media_driver/linux/common/ddi/media_libva_caps.cpp
+@@ -482,7 +482,7 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
+     {
+         attrib.value = CODEC_8K_MAX_PIC_WIDTH;
+     }
+-    if(IsAvcProfile(profile))
++    if(IsAvcProfile(profile) || IsVp8Profile(profile))
+     {
+         attrib.value = CODEC_4K_MAX_PIC_WIDTH;
+     }
+@@ -498,7 +498,7 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
+     {
+         attrib.value = CODEC_8K_MAX_PIC_HEIGHT;
+     }
+-    if(IsAvcProfile(profile))
++    if(IsAvcProfile(profile) || IsVp8Profile(profile))
+     {
+         attrib.value = CODEC_4K_MAX_PIC_HEIGHT;
+     }
+@@ -2599,7 +2599,7 @@ VAStatus MediaLibvaCaps::QuerySurfaceAttributes(
+         {
+             attribs[i].value.value.i = ENCODE_JPEG_MAX_PIC_WIDTH;
+         }
+-        if(IsAvcProfile(profile)||IsHevcProfile(profile))
++        if(IsAvcProfile(profile)||IsHevcProfile(profile)||IsVp8Profile(profile))
+         {
+             attribs[i].value.value.i = CODEC_4K_MAX_PIC_WIDTH;
+         }
+@@ -2613,7 +2613,7 @@ VAStatus MediaLibvaCaps::QuerySurfaceAttributes(
+         {
+             attribs[i].value.value.i = ENCODE_JPEG_MAX_PIC_HEIGHT;
+         }
+-        if(IsAvcProfile(profile)||IsHevcProfile(profile))
++        if(IsAvcProfile(profile)||IsHevcProfile(profile)||IsVp8Profile(profile))
+         {
+             attribs[i].value.value.i = CODEC_4K_MAX_PIC_HEIGHT;
+         }

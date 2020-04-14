@@ -1,0 +1,46 @@
+From ba16ac725df711f6dcde01686da9b5cc2e422db3 Mon Sep 17 00:00:00 2001
+From: Azhar Shaikh <azhar.shaikh@intel.com>
+Date: Mon, 18 Feb 2019 19:25:30 +0000
+Subject: [PATCH] [VP]: Add VAProfileVP9Profile2 support for
+ VA_RT_FORMAT_YUV420_10 for KBL
+
+PR: https://github.com/intel/media-driver/pull/528
+
+Signed-off-by: Azhar Shaikh <azhar.shaikh@intel.com>
+---
+ media_driver/linux/common/ddi/media_libva_caps.cpp | 6 ++++++
+ media_driver/linux/gen9/ddi/media_sku_wa_g9.cpp    | 1 +
+ 2 files changed, 7 insertions(+)
+
+diff --git a/media_driver/linux/common/ddi/media_libva_caps.cpp b/media_driver/linux/common/ddi/media_libva_caps.cpp
+index ea5a1720ed5b..07bcff73af15 100644
+--- a/media_driver/linux/common/ddi/media_libva_caps.cpp
++++ b/media_driver/linux/common/ddi/media_libva_caps.cpp
+@@ -873,6 +873,12 @@ VAStatus MediaLibvaCaps::CreateDecAttributes(
+             attrib.value |= VA_DEC_SLICE_MODE_NORMAL;
+             vp9ProfileSupported = true;
+         }
++	if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelVP9VLDProfile2Decoding10bit420))
++	{
++	    (*attribList) [VAConfigAttribRTFormat] |= VA_RT_FORMAT_YUV420_10;
++	    attrib.value |= VA_DEC_SLICE_MODE_NORMAL;
++	    vp9ProfileSupported = true;
++	}
+         if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelVP9VLDProfile2Decoding12bit420)
+             || MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelVP9VLDProfile3Decoding12bit444))
+         {
+diff --git a/media_driver/linux/gen9/ddi/media_sku_wa_g9.cpp b/media_driver/linux/gen9/ddi/media_sku_wa_g9.cpp
+index fe223e33e1bf..984517a7b888 100644
+--- a/media_driver/linux/gen9/ddi/media_sku_wa_g9.cpp
++++ b/media_driver/linux/gen9/ddi/media_sku_wa_g9.cpp
+@@ -330,6 +330,7 @@ static bool InitKblMediaSku(struct GfxDeviceInfo *devInfo,
+         MEDIA_WR_SKU(skuTable, FtrEncodeAVCVdenc, codecInfo->avcVdenc);
+         MEDIA_WR_SKU(skuTable, FtrVP9VLDDecoding, codecInfo->vp9Decoding);
+         MEDIA_WR_SKU(skuTable, FtrIntelVP9VLDProfile0Decoding8bit420, codecInfo->vp9Decoding);
++        MEDIA_WR_SKU(skuTable, FtrIntelVP9VLDProfile2Decoding10bit420, codecInfo->vp9b10Decoding);
+         MEDIA_WR_SKU(skuTable, FtrVP9VLD10bProfile2Decoding, codecInfo->vp9b10Decoding);
+         MEDIA_WR_SKU(skuTable, FtrIntelVP9VLDProfile2Decoding, codecInfo->vp9b10Decoding);
+ 
+-- 
+2.17.1
+

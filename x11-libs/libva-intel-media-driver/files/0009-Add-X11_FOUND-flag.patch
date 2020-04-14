@@ -1,0 +1,32 @@
+From 95549679029d85362a6f9397f62edc54595aeae9 Mon Sep 17 00:00:00 2001
+From: Azhar Shaikh <azhar.shaikh@intel.com>
+Date: Tue, 5 Mar 2019 14:24:26 -0800
+Subject: [PATCH] Add X11_FOUND flag
+
+PR#: https://github.com/intel/media-driver/pull/548
+
+There was an instance where the X11_FOUND flag was missing
+causing build failures on systems which do not support X(eg. chrome).
+Fix this by adding the check.
+
+Signed-off-by: Azhar Shaikh <azhar.shaikh@intel.com>
+---
+ media_driver/linux/common/codec/ddi/media_libva_decoder.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/media_driver/linux/common/codec/ddi/media_libva_decoder.cpp b/media_driver/linux/common/codec/ddi/media_libva_decoder.cpp
+index 0a8fa31b6663..9f3e3b92d8f5 100644
+--- a/media_driver/linux/common/codec/ddi/media_libva_decoder.cpp
++++ b/media_driver/linux/common/codec/ddi/media_libva_decoder.cpp
+@@ -41,7 +41,7 @@
+ #include "media_interfaces.h"
+ #include "media_ddi_decode_const.h"
+ 
+-#ifndef ANDROID
++#if !defined(ANDROID) && defined(X11_FOUND)
+ #include <X11/Xutil.h>
+ #endif
+ 
+-- 
+2.17.1
+

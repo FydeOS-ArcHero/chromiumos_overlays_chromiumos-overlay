@@ -1,0 +1,25 @@
+From fcd3e5fe89ec9ad4831a0e24956c4bc2caa57927 Mon Sep 17 00:00:00 2001
+From: Azhar Shaikh <azhar.shaikh@intel.com>
+Date: Mon, 4 Feb 2019 11:37:31 -0800
+Subject: [PATCH] Don't look for X package
+
+Signed-off-by: Azhar Shaikh <azhar.shaikh@intel.com>
+---
+ media_driver/media_top_cmake.cmake | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/media_driver/media_top_cmake.cmake b/media_driver/media_top_cmake.cmake
+index 9665f250c7ab..219da6ebabc0 100755
+--- a/media_driver/media_top_cmake.cmake
++++ b/media_driver/media_top_cmake.cmake
+@@ -21,7 +21,6 @@
+ project( media )
+ 
+ find_package(PkgConfig)
+-find_package(X11)
+ 
+ bs_set_if_undefined(LIB_NAME iHD_drv_video)
+ 
+-- 
+2.19.0
+

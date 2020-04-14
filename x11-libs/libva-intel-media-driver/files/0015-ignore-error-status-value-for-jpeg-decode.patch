@@ -1,0 +1,38 @@
+From 919b01027bd9d265710feb1bdf599779a2e02041 Mon Sep 17 00:00:00 2001
+From: XinfengZhang <carl.zhang@intel.com>
+Date: Mon, 15 Apr 2019 11:40:16 -0400
+Subject: [PATCH] ignore error status value for jpeg decode
+
+no clear description of the meaning of the value for jpeg
+just the description for AVC MPEG2 ...
+
+Signed-off-by: XinfengZhang <carl.zhang@intel.com>
+---
+ .../agnostic/common/codec/hal/codechal_decoder.cpp   | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/media_driver/agnostic/common/codec/hal/codechal_decoder.cpp b/media_driver/agnostic/common/codec/hal/codechal_decoder.cpp
+index b95b41300..d06a1f0d2 100644
+--- a/media_driver/agnostic/common/codec/hal/codechal_decoder.cpp
++++ b/media_driver/agnostic/common/codec/hal/codechal_decoder.cpp
+@@ -1603,14 +1603,14 @@ MOS_STATUS CodechalDecode::GetStatusReport(
+                     else
+                     {
+                         // Check to see if decoding error occurs
+-                        if ((m_decodeStatusBuf.m_decodeStatus[i].m_mmioErrorStatusReg &
+-                             m_mfxInterface->GetMfxErrorFlagsMask()) != 0)
+-                        {
+-                            codecStatus[j].m_codecStatus = CODECHAL_STATUS_ERROR;
+-                        }
+-                        //MB Count bit[15:0] is error concealment MB count for none JPEG decoder.
+                         if (m_standard != CODECHAL_JPEG)
+                         {
++                            if ((m_decodeStatusBuf.m_decodeStatus[i].m_mmioErrorStatusReg &
++                                 m_mfxInterface->GetMfxErrorFlagsMask()) != 0)
++                            {
++                                codecStatus[j].m_codecStatus = CODECHAL_STATUS_ERROR;
++                            }
++                        //MB Count bit[15:0] is error concealment MB count for none JPEG decoder.
+                             codecStatus[j].m_numMbsAffected =
+                                 m_decodeStatusBuf.m_decodeStatus[i].m_mmioMBCountReg & 0xFFFF;
+                         }

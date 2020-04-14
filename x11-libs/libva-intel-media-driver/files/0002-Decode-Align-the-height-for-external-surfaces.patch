@@ -1,0 +1,35 @@
+From 9cbf05de638ba28d43e9d72357a9189674334844 Mon Sep 17 00:00:00 2001
+From: Azhar Shaikh <azhar.shaikh@intel.com>
+Date: Fri, 22 Feb 2019 23:37:28 +0000
+Subject: [PATCH] [Decode]: Align the height for external surfaces
+
+PR - https://github.com/intel/media-driver/pull/536
+
+Signed-off-by: Azhar Shaikh <azhar.shaikh@intel.com>
+---
+ media_driver/linux/common/ddi/media_libva_util.cpp | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/media_driver/linux/common/ddi/media_libva_util.cpp b/media_driver/linux/common/ddi/media_libva_util.cpp
+index 80d388d58577..79cf033addce 100644
+--- a/media_driver/linux/common/ddi/media_libva_util.cpp
++++ b/media_driver/linux/common/ddi/media_libva_util.cpp
+@@ -465,7 +465,14 @@ VAStatus DdiMediaUtil_AllocateSurface(
+     if (DdiMediaUtil_IsExternalSurface(mediaSurface))
+     {
+         gmmParams.BaseWidth         = mediaSurface->iWidth;
+-        gmmParams.BaseHeight        = mediaSurface->iHeight;
++        if(mediaSurface->pSurfDesc->uiPlanes > 1)
++        {
++            gmmParams.BaseHeight = (mediaSurface->pSurfDesc->uiOffsets[1] - mediaSurface->pSurfDesc->uiOffsets[0]) / mediaSurface->pSurfDesc->uiPitches[0];
++        }
++	else
++        {
++            gmmParams.BaseHeight = mediaSurface->pSurfDesc->uiSize / mediaSurface->pSurfDesc->uiPitches[0];
++        }
+     }
+     else
+     {
+-- 
+2.17.1
+

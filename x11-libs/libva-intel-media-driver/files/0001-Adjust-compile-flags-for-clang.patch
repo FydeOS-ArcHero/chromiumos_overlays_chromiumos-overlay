@@ -1,0 +1,46 @@
+From b9439e7891c312adbee143b420dd9f045c0c50ea Mon Sep 17 00:00:00 2001
+From: Azhar Shaikh <azhar.shaikh@intel.com>
+Date: Tue, 13 Nov 2018 11:05:09 -0800
+Subject: [PATCH] Adjust compile flags for clang
+
+Signed-off-by: Azhar Shaikh <azhar.shaikh@intel.com>
+---
+ media_driver/cmake/linux/media_compile_flags_linux.cmake | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/media_driver/cmake/linux/media_compile_flags_linux.cmake b/media_driver/cmake/linux/media_compile_flags_linux.cmake
+index 9e85fdb22001..1400febf3ba7 100755
+--- a/media_driver/cmake/linux/media_compile_flags_linux.cmake
++++ b/media_driver/cmake/linux/media_compile_flags_linux.cmake
+@@ -49,7 +49,6 @@ set(MEDIA_COMPILER_FLAGS_COMMON
+     -msse4
+     -mfpmath=sse
+     -finline-functions
+-    -funswitch-loops
+     -fno-short-enums
+     -Wa,--noexecstack
+     -fno-strict-aliasing
+@@ -103,7 +102,6 @@ if(NOT ${PLATFORM} STREQUAL "android")
+     set(MEDIA_COMPILER_FLAGS_COMMON
+         ${MEDIA_COMPILER_FLAGS_COMMON}
+         -D__linux__
+-            -fno-tree-pre
+         -fPIC
+             -Wl,--no-as-needed
+         )
+@@ -199,3 +197,12 @@ if (DEFINED MEDIA_VERSION)
+ elseif (DEFINED ENV{MEDIA_VERSION})
+     add_definitions(-DUFO_VERSION="$ENV{MEDIA_VERSION}")
+ endif()
++
++add_compile_options("-Wno-reorder")
++add_compile_options("-Wno-deprecated")
++add_compile_options("-Wno-missing-braces")
++add_compile_options("-Wno-overloaded-virtual")
++add_compile_options("-Wno-inconsistent-missing-override")
++add_compile_options("-Wno-bitfield-constant-conversion")
++add_compile_options("-Wno-tautological-constant-out-of-range-compare")
++add_compile_options("-Wno-sizeof-array-div")
+-- 
+2.19.0
+

@@ -1,0 +1,32 @@
+From 3e50dacf1cde7a6657654e162cf9bfcdd5a850f2 Mon Sep 17 00:00:00 2001
+From: XinfengZhang <carl.zhang@intel.com>
+Date: Mon, 18 Feb 2019 15:01:29 -0500
+Subject: [PATCH] register reconstruct surfaces
+
+PR - https://github.com/intel/media-driver/pull/529
+
+Signed-off-by: XinfengZhang <carl.zhang@intel.com>
+---
+ media_driver/linux/common/codec/ddi/media_ddi_encode_vp8.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/media_driver/linux/common/codec/ddi/media_ddi_encode_vp8.cpp b/media_driver/linux/common/codec/ddi/media_ddi_encode_vp8.cpp
+index bc3fbc40..df8dd226 100644
+--- a/media_driver/linux/common/codec/ddi/media_ddi_encode_vp8.cpp
++++ b/media_driver/linux/common/codec/ddi/media_ddi_encode_vp8.cpp
+@@ -490,11 +490,11 @@ VAStatus DdiEncodeVp8::ParsePicParams(DDI_MEDIA_CONTEXT *mediaCtx, void *ptr)
+ 
+     DDI_CODEC_RENDER_TARGET_TABLE *rtTbl = &(m_encodeCtx->RTtbl);
+ 
+-    SetupCodecPicture(mediaCtx, rtTbl, &vp8PicParams->CurrReconstructedPic, picParams->reconstructed_frame, false);
+-
+     rtTbl->pCurrentReconTarget = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParams->reconstructed_frame);
+     DDI_CHK_NULL(rtTbl->pCurrentReconTarget, "nullptr rtTbl->pCurrentReconTarget", VA_STATUS_ERROR_INVALID_PARAMETER);
++    RegisterRTSurfaces(rtTbl,rtTbl->pCurrentReconTarget);
+ 
++    SetupCodecPicture(mediaCtx, rtTbl, &vp8PicParams->CurrReconstructedPic, picParams->reconstructed_frame, false);
+     // curr orig pic
+     vp8PicParams->CurrOriginalPic.FrameIdx = GetRenderTargetID(rtTbl, rtTbl->pCurrentReconTarget);
+     vp8PicParams->CurrOriginalPic.PicFlags = vp8PicParams->CurrReconstructedPic.PicFlags;
+-- 
+2.17.1

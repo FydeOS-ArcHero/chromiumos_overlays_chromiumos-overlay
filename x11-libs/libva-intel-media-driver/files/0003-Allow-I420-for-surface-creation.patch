@@ -1,0 +1,27 @@
+From 89b0008c110624bad001e159ce06a444c2063f13 Mon Sep 17 00:00:00 2001
+From: Yu Kang Ku <yu.kang.ku@intel.com>
+Date: Thu, 23 Aug 2018 16:23:18 -0700
+Subject: [PATCH] Allow I420 for surface creation
+
+PR - https://github.com/intel/media-driver/pull/539
+---
+ media_driver/linux/common/ddi/media_libva.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/media_driver/linux/common/ddi/media_libva.cpp b/media_driver/linux/common/ddi/media_libva.cpp
+index 3c26847..8aed009 100644
+--- a/media_driver/linux/common/ddi/media_libva.cpp
++++ b/media_driver/linux/common/ddi/media_libva.cpp
+@@ -2024,6 +2024,9 @@ DdiMedia_CreateSurfaces2(
+         case VA_FOURCC_Y416:
+             expected_fourcc = VA_FOURCC_Y416;
+             break;
++        case VA_FOURCC_I420:
++            expected_fourcc = VA_FOURCC_I420;
++            break;
+ #endif
+         default:
+             DDI_ASSERTMESSAGE("Invalid VAConfigAttribRTFormat: 0x%x. Please uses the format defined in libva/va.h", format);
+-- 
+1.9.1
+

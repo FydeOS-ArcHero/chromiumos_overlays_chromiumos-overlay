@@ -1,0 +1,1174 @@
+From c5a5993f306d3a5269fc23558b91a47f9393affa Mon Sep 17 00:00:00 2001
+From: "Chen, Jason K" <jason.k.chen@intel.com>
+Date: Thu, 13 Jun 2019 09:49:08 +0800
+Subject: [PATCH] [VP]Refactor image creation and image capability
+
+---
+ media_driver/linux/common/ddi/media_libva.cpp | 195 +++++++-----------
+ .../linux/common/ddi/media_libva_caps.cpp     | 128 ++++--------
+ .../linux/common/ddi/media_libva_caps.h       |  38 ++--
+ .../linux/common/ddi/media_libva_util.cpp     |   2 +-
+ .../linux/gen10/ddi/media_libva_caps_g10.cpp  |  90 ++++++++
+ .../linux/gen10/ddi/media_libva_caps_g10.h    |   9 +
+ .../linux/gen11/ddi/media_libva_caps_g11.cpp  |  88 +++++---
+ .../linux/gen11/ddi/media_libva_caps_g11.h    |  63 ++----
+ .../linux/gen8/ddi/media_libva_caps_g8.cpp    |  88 ++++++++
+ .../linux/gen8/ddi/media_libva_caps_g8.h      |  15 +-
+ .../linux/gen9/ddi/media_libva_caps_g9.cpp    |  90 ++++++++
+ .../linux/gen9/ddi/media_libva_caps_g9.h      |  16 +-
+ 12 files changed, 510 insertions(+), 312 deletions(-)
+
+diff --git a/media_driver/linux/common/ddi/media_libva.cpp b/media_driver/linux/common/ddi/media_libva.cpp
+index 7762d65080d6..a3d906cb3fe2 100755
+--- a/media_driver/linux/common/ddi/media_libva.cpp
++++ b/media_driver/linux/common/ddi/media_libva.cpp
+@@ -3825,105 +3825,58 @@ VAStatus DdiMedia_CreateImage(
+     GMM_RESOURCE_INFO          *gmmResourceInfo;
+     MOS_ZeroMemory(&gmmParams, sizeof(gmmParams));
+ 
+-    gmmParams.BaseWidth             = width;
+-    gmmParams.BaseHeight            = height;
+-    gmmParams.ArraySize             = 1;
+-    gmmParams.Type                  = RESOURCE_2D;
+-    gmmParams.Flags.Gpu.Video       = true;
+-
+     switch(format->fourcc)
+     {
+         case VA_FOURCC_RGBA:
+-            gmmParams.Format = GMM_FORMAT_R8G8B8A8_UNORM_TYPE;
+-            gmmParams.Flags.Info.Linear = true;
+-            break;
+         case VA_FOURCC_BGRA:
+-            gmmParams.Format = GMM_FORMAT_B8G8R8A8_UNORM_TYPE;
+-            gmmParams.Flags.Info.Linear = true;
+-            break;
+         case VA_FOURCC_ARGB:
+-            gmmParams.Format = GMM_FORMAT_B8G8R8A8_UNORM_TYPE;
+-            gmmParams.Flags.Info.Linear = true;
+-            break;
+         case VA_FOURCC_ABGR:
+-            gmmParams.Format = GMM_FORMAT_R8G8B8A8_UNORM_TYPE;
+-            gmmParams.Flags.Info.Linear = true;
+-            break;
+-        case VA_FOURCC_RGBX:
+-            gmmParams.Format = GMM_FORMAT_R8G8B8X8_UNORM_TYPE;
+-            gmmParams.Flags.Info.Linear = true;
+-            break;
+         case VA_FOURCC_BGRX:
+-            gmmParams.Format = GMM_FORMAT_B8G8R8X8_UNORM_TYPE;
+-            gmmParams.Flags.Info.Linear = true;
+-            break;
+-        case VA_FOURCC_I420:
+-            gmmParams.Format = GMM_FORMAT_I420_TYPE;
+-            gmmParams.Flags.Info.Linear = true;
+-            break;
+-        case VA_FOURCC_YV12:
+-            gmmParams.Format = GMM_FORMAT_YV12_TYPE;
+-            gmmParams.Flags.Info.Linear = true;
+-            break;
+-        case VA_FOURCC_NV21:
+-            gmmParams.Format = GMM_FORMAT_NV21_TYPE;
+-            gmmParams.Flags.Info.Linear = true;
+-            break;
++        case VA_FOURCC_RGBX:
++        case VA_FOURCC_XRGB:
++        case VA_FOURCC_XBGR:
++        case VA_FOURCC_R8G8B8:
++        case VA_FOURCC_RGB565:
+         case VA_FOURCC_RGBP:
+-            gmmParams.Format = GMM_FORMAT_RGBP;
+-            gmmParams.Flags.Info.Linear = true;
++        case VA_FOURCC_BGRP:
++        case VA_FOURCC_YV12:
++        case VA_FOURCC_I420:
++        case VA_FOURCC_IYUV:
++        case VA_FOURCC_UYVY:
++            gmmParams.BaseHeight = height;
+             break;
+         case VA_FOURCC_YUY2:
+-            gmmParams.Format = GMM_FORMAT_YUY2;
+-#if UFO_GRALLOC_NEW_FORMAT
+-            //Planar type surface align 64 to improve performance.
+-            gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 64);
+-#else
+-            //Planar type surface align 32 to improve performance.
+-            gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 32);
+-#endif
+-            break;
++        case VA_FOURCC_AYUV:
++        case VA_FOURCC_Y210:
++        case VA_FOURCC_Y410:
+         case VA_FOURCC_NV12:
+-            gmmParams.Format = GMM_FORMAT_NV12_TYPE;
+-#if UFO_GRALLOC_NEW_FORMAT
+-            //Planar type surface align 64 to improve performance.
+-            gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 64);
+-#else
+-            //Planar type surface align 32 to improve performance.
+-            gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 32);
+-#endif
+-            break;
++        case VA_FOURCC_NV21:
+         case VA_FOURCC_P010:
+-            gmmParams.Format = GMM_FORMAT_P010_TYPE;
+-#if UFO_GRALLOC_NEW_FORMAT
+-            //Planar type surface align 64 to improve performance.
+-            gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 64);
+-#else
+-            //Planar type surface align 32 to improve performance.
+-            gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 32);
+-#endif
+-            break;
+-        case VA_FOURCC_444P:
+-            gmmParams.Format = GMM_FORMAT_MFX_JPEG_YUV444_TYPE;
+-            gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 32);
+-            break;
++        case VA_FOURCC_P016:
++        case VA_FOURCC_411P:
+         case VA_FOURCC_422H:
+-            gmmParams.Format = GMM_FORMAT_MFX_JPEG_YUV422H_TYPE;
+-            gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 32);
+-            break;
++        case VA_FOURCC_444P:
+         case VA_FOURCC_422V:
+-            gmmParams.Format = GMM_FORMAT_MFX_JPEG_YUV422V_TYPE;
++        case VA_FOURCC_IMC3:
+             gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 32);
+             break;
+-        case VA_FOURCC_UYVY:
+-            gmmParams.Format = GMM_FORMAT_UYVY;
+-            gmmParams.Flags.Info.TiledY = true;
+-            break;
+         default:
+             MOS_FreeMemory(vaimg);
+             return VA_STATUS_ERROR_UNIMPLEMENTED;
+     }
+ 
++    gmmParams.BaseWidth       = width;
++    gmmParams.ArraySize       = 1;
++    gmmParams.Type            = RESOURCE_2D;
++    gmmParams.Flags.Gpu.Video = true;
++    gmmParams.Format          = mediaCtx->m_caps->ConvertFourccToGmmFmt(format->fourcc);
++
++    if (gmmParams.Format == GMM_FORMAT_INVALID)
++    {
++        MOS_FreeMemory(vaimg);
++        return VA_STATUS_ERROR_UNIMPLEMENTED;
++    }
++
+     gmmResourceInfo = mediaCtx->pGmmClientContext->CreateResInfoObject(&gmmParams);
+     if(nullptr == gmmResourceInfo)
+     {
+@@ -3932,94 +3885,104 @@ VAStatus DdiMedia_CreateImage(
+         return VA_STATUS_ERROR_ALLOCATION_FAILED;
+     }
+ 
+-    uint32_t    gmmPitch;
+-    uint32_t    gmmSize;
+-    uint32_t    gmmHeight;
+-    gmmPitch    = (uint32_t)gmmResourceInfo->GetRenderPitch();
+-    gmmSize     = (uint32_t)gmmResourceInfo->GetSizeSurface();
+-    gmmHeight   = (uint32_t)gmmResourceInfo->GetBaseHeight();
++    uint32_t    gmmPitch  = (uint32_t)gmmResourceInfo->GetRenderPitch();
++    uint32_t    gmmHeight = (uint32_t)gmmResourceInfo->GetBaseHeight();
+ 
+-    vaimg->format                   = *format;
+-    vaimg->format.byte_order        = VA_LSB_FIRST;
+-    vaimg->width                    = width;
+-    vaimg->height                   = height;
+-    vaimg->data_size                = gmmSize;
+-    vaimg->format.bits_per_pixel    = format->bits_per_pixel;
++    vaimg->format                = *format;
++    vaimg->format.byte_order     = VA_LSB_FIRST;
++    vaimg->width                 = width;
++    vaimg->height                = height;
++    vaimg->data_size             = (uint32_t)gmmResourceInfo->GetSizeSurface();
++    vaimg->format.bits_per_pixel = gmmResourceInfo->GetBitsPerPixel();
+ 
+     switch(format->fourcc)
+     {
+         case VA_FOURCC_RGBA:
+         case VA_FOURCC_BGRA:
+-        case VA_FOURCC_BGRX:
+-        case VA_FOURCC_RGBX:
+         case VA_FOURCC_ARGB:
+         case VA_FOURCC_ABGR:
+-            vaimg->format.bits_per_pixel = 32;
++        case VA_FOURCC_BGRX:
++        case VA_FOURCC_RGBX:
++        case VA_FOURCC_XRGB:
++        case VA_FOURCC_XBGR:
++        case VA_FOURCC_R8G8B8:
++        case VA_FOURCC_RGB565:
+             vaimg->num_planes = 1;
+             vaimg->pitches[0] = gmmPitch;
++            vaimg->offsets[0] = 0;
+             break;
+-        case VA_FOURCC_YV12:
+-        case VA_FOURCC_I420:
++        case VA_FOURCC_RGBP:
++        case VA_FOURCC_BGRP:
+             vaimg->num_planes = 3;
+             vaimg->pitches[0] = gmmPitch;
+-            vaimg->pitches[1] = gmmPitch / 2;
+-            vaimg->pitches[2] = gmmPitch / 2;
++            vaimg->pitches[1] = gmmPitch;
++            vaimg->pitches[2] = gmmPitch;
++            vaimg->offsets[0] = 0;
+             vaimg->offsets[1] = gmmPitch * gmmHeight;
+-            vaimg->offsets[2] = vaimg->offsets[1] + gmmPitch * gmmHeight / 4;
++            vaimg->offsets[2] = gmmPitch * gmmHeight * 2;
+             break;
+         case VA_FOURCC_UYVY:
+         case VA_FOURCC_YUY2:
++        case VA_FOURCC_AYUV:
++        case VA_FOURCC_Y210:
++        case VA_FOURCC_Y410:
+             vaimg->num_planes = 1;
+             vaimg->pitches[0] = gmmPitch;
++            vaimg->offsets[0] = 0;
+             break;
+         case VA_FOURCC_NV12:
+         case VA_FOURCC_NV21:
+             vaimg->num_planes = 2;
+             vaimg->pitches[0] = gmmPitch;
+             vaimg->pitches[1] = gmmPitch;
+-            vaimg->pitches[2] = gmmPitch;
++            vaimg->offsets[0] = 0;
+             vaimg->offsets[1] = gmmPitch * gmmHeight;
+             vaimg->offsets[2] = vaimg->offsets[1] + 1;
+             break;
+         case VA_FOURCC_P010:
+-            vaimg->format.bits_per_pixel = 24;
++        case VA_FOURCC_P016:
+             vaimg->num_planes = 2;
+             vaimg->pitches[0] = gmmPitch;
+             vaimg->pitches[1] = gmmPitch;
+-            vaimg->pitches[2] = gmmPitch;
++            vaimg->offsets[0] = 0;
+             vaimg->offsets[1] = gmmPitch * gmmHeight;
+             vaimg->offsets[2] = vaimg->offsets[1] + 2;
+             break;
+-        case VA_FOURCC_444P:
+-            vaimg->format.bits_per_pixel = 24;
++        case VA_FOURCC_YV12:
++        case VA_FOURCC_I420:
++        case VA_FOURCC_IYUV:
+             vaimg->num_planes = 3;
+-            vaimg->pitches[0] = vaimg->pitches[1] =  vaimg->pitches[2] = gmmPitch;
++            vaimg->pitches[0] = gmmPitch;
++            vaimg->pitches[1] = gmmPitch / 2;
++            vaimg->pitches[2] = gmmPitch / 2;
++            vaimg->offsets[0] = 0;
+             vaimg->offsets[1] = gmmPitch * gmmHeight;
+-            vaimg->offsets[2] = vaimg->offsets[1] + gmmPitch * gmmHeight;
++            vaimg->offsets[2] = vaimg->offsets[1] + gmmPitch * gmmHeight / 4;
+             break;
++        case VA_FOURCC_411P:
+         case VA_FOURCC_422H:
+-            vaimg->format.bits_per_pixel = 16;
++        case VA_FOURCC_444P:
+             vaimg->num_planes = 3;
+             vaimg->pitches[0] = gmmPitch;
+-            vaimg->pitches[1] = vaimg->pitches[2] = gmmPitch / 2;
++            vaimg->pitches[1] = gmmPitch;
++            vaimg->pitches[2] = gmmPitch;
++            vaimg->offsets[0] = 0;
+             vaimg->offsets[1] = gmmPitch * gmmHeight;
+-            vaimg->offsets[2] = vaimg->offsets[1] + gmmPitch * gmmHeight / 2;
++            vaimg->offsets[2] = vaimg->offsets[1] + gmmPitch * gmmHeight;
+             break;
+         case VA_FOURCC_422V:
+-            vaimg->format.bits_per_pixel = 16;
+-            vaimg->num_planes = 3;
+-            vaimg->pitches[0] = vaimg->pitches[1] = vaimg->pitches[2] = gmmPitch;
+-            vaimg->offsets[1] = gmmPitch * gmmHeight;
+-            vaimg->offsets[2] = vaimg->offsets[1] + gmmPitch * gmmHeight / 2;
+-        case VA_FOURCC_RGBP:
+-            vaimg->format.bits_per_pixel = 24;
++        case VA_FOURCC_IMC3:
+             vaimg->num_planes = 3;
+             vaimg->pitches[0] = gmmPitch;
+             vaimg->pitches[1] = gmmPitch;
+             vaimg->pitches[2] = gmmPitch;
++            vaimg->offsets[0] = 0;
+             vaimg->offsets[1] = gmmPitch * gmmHeight;
+-            vaimg->offsets[2] = gmmPitch * gmmHeight * 2;
++            vaimg->offsets[2] = vaimg->offsets[1] + gmmPitch * gmmHeight / 2;
+             break;
++        default:
++            MOS_FreeMemory(vaimg);
++            return VA_STATUS_ERROR_UNIMPLEMENTED;
+     }
+ 
+     mediaCtx->pGmmClientContext->DestroyResInfoObject(gmmResourceInfo);
+diff --git a/media_driver/linux/common/ddi/media_libva_caps.cpp b/media_driver/linux/common/ddi/media_libva_caps.cpp
+index ccec28d0425a..9841c766ebd6 100644
+--- a/media_driver/linux/common/ddi/media_libva_caps.cpp
++++ b/media_driver/linux/common/ddi/media_libva_caps.cpp
+@@ -100,37 +100,6 @@ const uint32_t MediaLibvaCaps::m_jpegEncSurfaceAttr[m_numJpegEncSurfaceAttr] =
+     VA_FOURCC_Y800
+ };
+ 
+-const VAImageFormat MediaLibvaCaps::m_supportedImageformats[] =
+-{   {VA_FOURCC_BGRA, VA_LSB_FIRST, 32,  24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0xff000000},
+-    {VA_FOURCC_ARGB, VA_LSB_FIRST, 32,  24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0xff000000},
+-    {VA_FOURCC_RGBA, VA_LSB_FIRST, 32,  24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0xff000000},
+-    {VA_FOURCC_ABGR, VA_LSB_FIRST, 32,  24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0xff000000},
+-    {VA_FOURCC_BGRX, VA_LSB_FIRST, 32,  24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0},
+-    {VA_FOURCC_XRGB, VA_LSB_FIRST, 32,  24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0},
+-    {VA_FOURCC_RGBX, VA_LSB_FIRST, 32,  24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0},
+-    {VA_FOURCC_XBGR, VA_LSB_FIRST, 32,  24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0},
+-    {VA_FOURCC_XBGR, VA_LSB_FIRST, 16,  16, 0xf800, 0x07d0, 0x001f,  0x0000},
+-    {VA_FOURCC_NV12, VA_LSB_FIRST, 12, 0,0,0,0,0},
+-    {VA_FOURCC_NV21, VA_LSB_FIRST, 12, 0,0,0,0,0},
+-    {VA_FOURCC_YUY2, VA_LSB_FIRST, 16, 0,0,0,0,0},
+-    {VA_FOURCC_UYVY, VA_LSB_FIRST, 16, 0,0,0,0,0},
+-    {VA_FOURCC_YV12, VA_LSB_FIRST, 12, 0,0,0,0,0},
+-    {VA_FOURCC_IYUV, VA_LSB_FIRST, 12, 0,0,0,0,0},
+-    {VA_FOURCC_Y210, VA_LSB_FIRST, 16, 0,0,0,0,0},
+-    {VA_FOURCC_Y216, VA_LSB_FIRST, 16, 0,0,0,0,0},
+-    {VA_FOURCC_422H, VA_LSB_FIRST, 16, 0,0,0,0,0},
+-    {VA_FOURCC_422V, VA_LSB_FIRST, 16, 0,0,0,0,0},
+-    {VA_FOURCC_Y800, VA_LSB_FIRST, 8, 0,0,0,0,0},
+-    {VA_FOURCC_411P, VA_LSB_FIRST, 12, 0,0,0,0,0},
+-    {VA_FOURCC_IMC3, VA_LSB_FIRST, 16, 0,0,0,0,0},
+-    {VA_FOURCC_444P, VA_LSB_FIRST, 24, 0,0,0,0,0},
+-    {VA_FOURCC_RGBP, VA_LSB_FIRST, 24, 24, 0xff0000, 0x00ff00, 0x0000ff, 0},
+-    {VA_FOURCC_BGRP, VA_LSB_FIRST, 24, 24, 0x0000ff, 0x00ff00, 0xff0000, 0},
+-    {VA_FOURCC_P208, VA_LSB_FIRST, 8, 0,0,0,0,0},
+-    {VA_FOURCC_P016, VA_LSB_FIRST, 12, 0,0,0,0,0},
+-    {VA_FOURCC('P','0','1','0'), VA_LSB_FIRST, 24, 0,0,0,0,0},
+-};
+-
+ MediaLibvaCaps::MediaLibvaCaps(DDI_MEDIA_CONTEXT *mediaCtx)
+ {
+     m_mediaCtx = mediaCtx;
+@@ -145,28 +114,6 @@ MediaLibvaCaps::~MediaLibvaCaps()
+     m_CapsCp = nullptr;
+ }
+ 
+-VAStatus MediaLibvaCaps::PopulateColorMaskInfo(VAImageFormat *vaImgFmt)
+-{
+-    uint32_t maxNum = GetImageFormatsMaxNum();
+-
+-    DDI_CHK_NULL(vaImgFmt, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+-
+-    for (int32_t idx = 0; idx < maxNum; idx++)
+-    {
+-        if (m_supportedImageformats[idx].fourcc == vaImgFmt->fourcc)
+-        {
+-            vaImgFmt->red_mask = m_supportedImageformats[idx].red_mask;
+-            vaImgFmt->green_mask = m_supportedImageformats[idx].green_mask;
+-            vaImgFmt->blue_mask = m_supportedImageformats[idx].blue_mask;
+-            vaImgFmt->alpha_mask = m_supportedImageformats[idx].alpha_mask;
+-
+-            return VA_STATUS_SUCCESS;
+-        }
+-    }
+-
+-    return VA_STATUS_ERROR_INVALID_IMAGE_FORMAT;
+-}
+-
+ bool MediaLibvaCaps::CheckEntrypointCodecType(VAEntrypoint entrypoint, CodecType codecType)
+ {
+     switch (codecType)
+@@ -2921,42 +2868,6 @@ std::string MediaLibvaCaps::GetEncodeCodecKey(VAProfile profile, VAEntrypoint en
+     }
+ }
+ 
+-VAStatus MediaLibvaCaps::QueryImageFormats(VAImageFormat *formatList, int32_t *numFormats)
+-{
+-    DDI_CHK_NULL(formatList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+-    DDI_CHK_NULL(numFormats, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+-    int32_t num = 0;
+-    bool supportP010 = IsP010Supported();
+-    uint32_t maxNum = MediaLibvaCaps::GetImageFormatsMaxNum();
+-
+-    memset(formatList, 0,  sizeof(m_supportedImageformats));
+-    for (uint32_t idx = 0; idx < maxNum; idx++)
+-    {
+-        if (!supportP010 && m_supportedImageformats[idx].fourcc == VA_FOURCC('P','0','1','0') )
+-        {
+-            continue;
+-        }
+-
+-        formatList[num].fourcc           = m_supportedImageformats[idx].fourcc;
+-        formatList[num].byte_order       = m_supportedImageformats[idx].byte_order;
+-        formatList[num].bits_per_pixel   = m_supportedImageformats[idx].bits_per_pixel;
+-        formatList[num].depth            = m_supportedImageformats[idx].depth;
+-        formatList[num].red_mask         = m_supportedImageformats[idx].red_mask;
+-        formatList[num].green_mask       = m_supportedImageformats[idx].green_mask;
+-        formatList[num].blue_mask        = m_supportedImageformats[idx].blue_mask;
+-        formatList[num].alpha_mask       = m_supportedImageformats[idx].alpha_mask;
+-        num++;
+-    }
+-    *numFormats = num;
+-
+-    return VA_STATUS_SUCCESS;
+-}
+-
+-uint32_t MediaLibvaCaps::GetImageFormatsMaxNum()
+-{
+-    return sizeof(m_supportedImageformats)/sizeof(m_supportedImageformats[0]);
+-}
+-
+ bool MediaLibvaCaps::IsDecConfigId(VAConfigID configId)
+ {
+     return ((configId >= DDI_CODEC_GEN_CONFIG_ATTRIBUTES_DEC_BASE) &&
+@@ -3042,6 +2953,45 @@ GMM_RESOURCE_FORMAT MediaLibvaCaps::ConvertMediaFmtToGmmFmt(
+     }
+ }
+ 
++GMM_RESOURCE_FORMAT MediaLibvaCaps::ConvertFourccToGmmFmt(uint32_t fourcc)
++{
++    switch (fourcc)
++    {
++        case VA_FOURCC_BGRA   : return GMM_FORMAT_B8G8R8A8_UNORM_TYPE;
++        case VA_FOURCC_ARGB   : return GMM_FORMAT_B8G8R8A8_UNORM_TYPE;
++        case VA_FOURCC_RGBA   : return GMM_FORMAT_R8G8B8A8_UNORM_TYPE;
++        case VA_FOURCC_ABGR   : return GMM_FORMAT_R8G8B8A8_UNORM_TYPE;
++        case VA_FOURCC_BGRX   : return GMM_FORMAT_B8G8R8X8_UNORM_TYPE;
++        case VA_FOURCC_XRGB   : return GMM_FORMAT_B8G8R8X8_UNORM_TYPE;
++        case VA_FOURCC_RGBX   : return GMM_FORMAT_R8G8B8X8_UNORM_TYPE;
++        case VA_FOURCC_XBGR   : return GMM_FORMAT_R8G8B8X8_UNORM_TYPE;
++        case VA_FOURCC_R8G8B8 : return GMM_FORMAT_R8G8B8_UNORM;
++        case VA_FOURCC_RGBP   : return GMM_FORMAT_RGBP;
++        case VA_FOURCC_BGRP   : return GMM_FORMAT_RGBP;
++        case VA_FOURCC_RGB565 : return GMM_FORMAT_B5G6R5_UNORM_TYPE;
++        case VA_FOURCC_AYUV   : return GMM_FORMAT_AYUV_TYPE;
++        case VA_FOURCC_NV12   : return GMM_FORMAT_NV12_TYPE;
++        case VA_FOURCC_NV21   : return GMM_FORMAT_NV21_TYPE;
++        case VA_FOURCC_YUY2   : return GMM_FORMAT_YUY2;
++        case VA_FOURCC_UYVY   : return GMM_FORMAT_UYVY;
++        case VA_FOURCC_YV12   : return GMM_FORMAT_YV12_TYPE;
++        case VA_FOURCC_I420   : return GMM_FORMAT_I420_TYPE;
++        case VA_FOURCC_IYUV   : return GMM_FORMAT_IYUV_TYPE;
++        case VA_FOURCC_411P   : return GMM_FORMAT_MFX_JPEG_YUV411_TYPE;
++        case VA_FOURCC_422H   : return GMM_FORMAT_MFX_JPEG_YUV422H_TYPE;
++        case VA_FOURCC_422V   : return GMM_FORMAT_MFX_JPEG_YUV422V_TYPE;
++        case VA_FOURCC_444P   : return GMM_FORMAT_MFX_JPEG_YUV444_TYPE;
++        case VA_FOURCC_IMC3   : return GMM_FORMAT_IMC3_TYPE;
++        case VA_FOURCC_P208   : return GMM_FORMAT_P208_TYPE;
++        case VA_FOURCC_P010   : return GMM_FORMAT_P010_TYPE;
++        case VA_FOURCC_P016   : return GMM_FORMAT_P016_TYPE;
++        case VA_FOURCC_Y210   : return GMM_FORMAT_Y210_TYPE;
++        case VA_FOURCC_Y410   : return GMM_FORMAT_Y410_TYPE;
++        case VA_FOURCC_Y800   : return GMM_FORMAT_GENERIC_8BIT;
++        default               : return GMM_FORMAT_INVALID;
++    }
++}
++
+ VAStatus MediaLibvaCaps::GetMbProcessingRateDec(
+         MEDIA_FEATURE_TABLE *skuTable,
+         uint32_t *mbProcessingRatePerSec)
+diff --git a/media_driver/linux/common/ddi/media_libva_caps.h b/media_driver/linux/common/ddi/media_libva_caps.h
+index 2e5c51daac76..c93b9fa853b9 100644
+--- a/media_driver/linux/common/ddi/media_libva_caps.h
++++ b/media_driver/linux/common/ddi/media_libva_caps.h
+@@ -514,7 +514,14 @@ public:
+     //! \return   VAStatus 
+     //!           VA_STATUS_SUCCESS if succeed 
+     //!
+-    virtual VAStatus QueryImageFormats(VAImageFormat *formatList, int32_t *num_formats);
++    virtual VAStatus QueryImageFormats(VAImageFormat *formatList, int32_t *num_formats) = 0;
++
++    //!
++    //! \brief    Return the maxinum number of supported image formats
++    //!
++    //! \return   The maxinum number of supported image formats
++    //!
++    virtual uint32_t GetImageFormatsMaxNum() = 0;
+ 
+     //!
+     //! \brief    Populate the color masks info 
+@@ -526,7 +533,9 @@ public:
+     //! \return   VAStatus 
+     //!           VA_STATUS_SUCCESS if succeed 
+     //!
+-    virtual VAStatus PopulateColorMaskInfo(VAImageFormat *vaImgFmt);
++    virtual VAStatus PopulateColorMaskInfo(VAImageFormat *vaImgFmt) = 0;
++
++    virtual bool IsImageSupported(uint32_t fourcc) = 0;
+     
+     //!
+     //! \brief    Query AVC ROI maxinum numbers and if support ROI in delta QP 
+@@ -548,13 +557,6 @@ public:
+     //!
+     virtual VAStatus QueryAVCROIMaxNum(uint32_t rcMode, bool isVdenc, uint32_t *maxNum, bool *isRoiInDeltaQP) = 0;
+ 
+-    //!
+-    //! \brief    Return the maxinum number of supported image formats 
+-    //!
+-    //! \return   The maxinum number of supported image formats 
+-    //!
+-    virtual uint32_t GetImageFormatsMaxNum();
+-
+     //!
+     //! \brief    Check if the configID is a valid decode config 
+     //!
+@@ -639,6 +641,16 @@ public:
+     //!
+     virtual GMM_RESOURCE_FORMAT ConvertMediaFmtToGmmFmt(DDI_MEDIA_FORMAT format);
+ 
++    //!
++    //! \brief convert FOURCC to Gmm Format.
++    //!
++    //! \param    [in] fourcc
++    //!
++    //! \return GMM_RESOURCE_FORMAT
++    //!         Pointer to gmm format type
++    //!
++    virtual GMM_RESOURCE_FORMAT ConvertFourccToGmmFmt(uint32_t fourcc);
++
+     //!
+     //! \brief    Initialize the MediaLibvaCaps instance for current platform 
+     //!
+@@ -723,7 +735,6 @@ protected:
+     static const uint32_t m_vpSurfaceAttr[m_numVpSurfaceAttr]; //!< Store the VP surface attributes
+     static const uint32_t m_jpegSurfaceAttr[m_numJpegSurfaceAttr]; //!< Store the JPEG surface attributes
+     static const uint32_t m_jpegEncSurfaceAttr[m_numJpegEncSurfaceAttr]; //!< Store the JPEG encode surface attributes
+-    static const VAImageFormat m_supportedImageformats[]; //!< Store all the supported image formats
+ 
+     static const uint32_t m_decMpeg2MaxWidth = 2048; //!< Maximum width for Mpeg2 decode
+     static const uint32_t m_decMpeg2MaxHeight = 2048; //!< Maximum height for Mpeg2 decode
+@@ -1180,13 +1191,6 @@ protected:
+             VAConfigAttribType type,
+             uint32_t *value) = 0;
+ 
+-    //!
+-    //! \brief    Return if image format P010 supported on current platform
+-    //!
+-    //! \return   True if P010 is supported, otherwise false 
+-    //!
+-    virtual bool IsP010Supported() = 0;
+-
+     //!
+     //! \brief    Return encode Mb processing rate on current platform
+     //!
+diff --git a/media_driver/linux/common/ddi/media_libva_util.cpp b/media_driver/linux/common/ddi/media_libva_util.cpp
+index 80d388d58577..8829ad6e4de1 100644
+--- a/media_driver/linux/common/ddi/media_libva_util.cpp
++++ b/media_driver/linux/common/ddi/media_libva_util.cpp
+@@ -326,7 +326,6 @@ VAStatus DdiMediaUtil_AllocateSurface(
+                  tileformat = I915_TILING_NONE;
+                  break;
+             }
+-        case Media_Format_NV21:
+         case Media_Format_YV12:
+         case Media_Format_I420:
+         case Media_Format_IYUV:
+@@ -345,6 +344,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
+                  break;
+             }
+         case Media_Format_NV12:
++        case Media_Format_NV21:
+         case Media_Format_444P:
+         case Media_Format_422H:
+         case Media_Format_411P:
+diff --git a/media_driver/linux/gen10/ddi/media_libva_caps_g10.cpp b/media_driver/linux/gen10/ddi/media_libva_caps_g10.cpp
+index b0e0531a2456..d10b87192da7 100644
+--- a/media_driver/linux/gen10/ddi/media_libva_caps_g10.cpp
++++ b/media_driver/linux/gen10/ddi/media_libva_caps_g10.cpp
+@@ -30,6 +30,96 @@
+ #include "media_libva_caps_g10.h"
+ #include "media_libva_caps_factory.h"
+ 
++const VAImageFormat m_supportedImageformatsG10[] =
++{   {VA_FOURCC_BGRA,   VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0xff000000},
++    {VA_FOURCC_ARGB,   VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0xff000000},
++    {VA_FOURCC_RGBA,   VA_LSB_FIRST,   32, 24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0xff000000},
++    {VA_FOURCC_ABGR,   VA_LSB_FIRST,   32, 24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0xff000000},
++    {VA_FOURCC_BGRX,   VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0},
++    {VA_FOURCC_XRGB,   VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0},
++    {VA_FOURCC_RGBX,   VA_LSB_FIRST,   32, 24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0},
++    {VA_FOURCC_XBGR,   VA_LSB_FIRST,   32, 24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0},
++    {VA_FOURCC_RGBP,   VA_LSB_FIRST,   24, 24, 0xff0000,   0x00ff00,   0x0000ff,    0},
++    {VA_FOURCC_RGB565, VA_LSB_FIRST,   16, 16, 0xf800,     0x07e0,     0x001f,      0},
++    {VA_FOURCC_NV12,   VA_LSB_FIRST,   12, 0,0,0,0,0},
++    {VA_FOURCC_NV21,   VA_LSB_FIRST,   12, 0,0,0,0,0},
++    {VA_FOURCC_YUY2,   VA_LSB_FIRST,   16, 0,0,0,0,0},
++    {VA_FOURCC_UYVY,   VA_LSB_FIRST,   16, 0,0,0,0,0},
++    {VA_FOURCC_YV12,   VA_LSB_FIRST,   12, 0,0,0,0,0},
++    {VA_FOURCC_I420,   VA_LSB_FIRST,   12, 0,0,0,0,0},
++    {VA_FOURCC_422H,   VA_LSB_FIRST,   16, 0,0,0,0,0},
++    {VA_FOURCC_422V,   VA_LSB_FIRST,   16, 0,0,0,0,0},
++    {VA_FOURCC_444P,   VA_LSB_FIRST,   24, 0,0,0,0,0},
++    {VA_FOURCC_IMC3,   VA_LSB_FIRST,   16, 0,0,0,0,0},
++    {VA_FOURCC_P010,   VA_LSB_FIRST,   24, 0,0,0,0,0}
++};
++
++VAStatus MediaLibvaCapsG10::QueryImageFormats(VAImageFormat *formatList, int32_t *numFormats)
++{
++    DDI_CHK_NULL(formatList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
++    DDI_CHK_NULL(numFormats, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
++    int32_t num = 0;
++    uint32_t maxNum = GetImageFormatsMaxNum();
++
++    memset(formatList, 0,  sizeof(m_supportedImageformatsG10));
++    for (uint32_t idx = 0; idx < maxNum; idx++)
++    {
++        formatList[num].fourcc           = m_supportedImageformatsG10[idx].fourcc;
++        formatList[num].byte_order       = m_supportedImageformatsG10[idx].byte_order;
++        formatList[num].bits_per_pixel   = m_supportedImageformatsG10[idx].bits_per_pixel;
++        formatList[num].depth            = m_supportedImageformatsG10[idx].depth;
++        formatList[num].red_mask         = m_supportedImageformatsG10[idx].red_mask;
++        formatList[num].green_mask       = m_supportedImageformatsG10[idx].green_mask;
++        formatList[num].blue_mask        = m_supportedImageformatsG10[idx].blue_mask;
++        formatList[num].alpha_mask       = m_supportedImageformatsG10[idx].alpha_mask;
++        num++;
++    }
++    *numFormats = num;
++
++    return VA_STATUS_SUCCESS;
++}
++
++uint32_t MediaLibvaCapsG10::GetImageFormatsMaxNum()
++{
++    return sizeof(m_supportedImageformatsG10)/sizeof(m_supportedImageformatsG10[0]);
++}
++
++bool MediaLibvaCapsG10::IsImageSupported(uint32_t fourcc)
++{
++    uint32_t maxNum = GetImageFormatsMaxNum();
++    for (int32_t idx = 0; idx < maxNum; idx++)
++    {
++        if (m_supportedImageformatsG10[idx].fourcc == fourcc)
++        {
++            return true;
++        }
++    }
++
++    return false;
++}
++
++VAStatus MediaLibvaCapsG10::PopulateColorMaskInfo(VAImageFormat *vaImgFmt)
++{
++    uint32_t maxNum = GetImageFormatsMaxNum();
++
++    DDI_CHK_NULL(vaImgFmt, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
++
++    for (int32_t idx = 0; idx < maxNum; idx++)
++    {
++        if (m_supportedImageformatsG10[idx].fourcc == vaImgFmt->fourcc)
++        {
++            vaImgFmt->red_mask   = m_supportedImageformatsG10[idx].red_mask;
++            vaImgFmt->green_mask = m_supportedImageformatsG10[idx].green_mask;
++            vaImgFmt->blue_mask  = m_supportedImageformatsG10[idx].blue_mask;
++            vaImgFmt->alpha_mask = m_supportedImageformatsG10[idx].alpha_mask;
++
++            return VA_STATUS_SUCCESS;
++        }
++    }
++
++    return VA_STATUS_ERROR_INVALID_IMAGE_FORMAT;
++}
++
+ VAStatus MediaLibvaCapsG10::GetPlatformSpecificAttrib(VAProfile profile,
+         VAEntrypoint entrypoint,
+         VAConfigAttribType type,
+diff --git a/media_driver/linux/gen10/ddi/media_libva_caps_g10.h b/media_driver/linux/gen10/ddi/media_libva_caps_g10.h
+index ef344e836ab7..c6bffb03a284 100644
+--- a/media_driver/linux/gen10/ddi/media_libva_caps_g10.h
++++ b/media_driver/linux/gen10/ddi/media_libva_caps_g10.h
+@@ -49,6 +49,15 @@ public:
+         LoadProfileEntrypoints();
+         return VA_STATUS_SUCCESS;
+     }
++
++    virtual VAStatus QueryImageFormats(VAImageFormat *formatList, int32_t *num_formats);
++
++    virtual uint32_t GetImageFormatsMaxNum();
++
++    virtual bool IsImageSupported(uint32_t fourcc);
++
++    virtual VAStatus PopulateColorMaskInfo(VAImageFormat *vaImgFmt);
++
+ protected:
+     static const uint32_t m_maxHevcEncWidth =
+         CODEC_8K_MAX_PIC_WIDTH; //!< maxinum width for HEVC encode
+diff --git a/media_driver/linux/gen11/ddi/media_libva_caps_g11.cpp b/media_driver/linux/gen11/ddi/media_libva_caps_g11.cpp
+index f949a8957ecb..2fafce9363db 100644
+--- a/media_driver/linux/gen11/ddi/media_libva_caps_g11.cpp
++++ b/media_driver/linux/gen11/ddi/media_libva_caps_g11.cpp
+@@ -34,10 +34,31 @@
+ #include "media_ddi_decode_const_g11.h"
+ #include "media_libva_vp.h"
+ 
+-const VAImageFormat MediaLibvaCapsG11::m_G11ImageFormats[] =
+-{    {VA_FOURCC_AYUV, VA_LSB_FIRST, 24, 0,0,0,0,0},
+-     {VA_FOURCC_Y410, VA_LSB_FIRST, 24, 0,0,0,0,0},
+-     {VA_FOURCC_Y416, VA_LSB_FIRST, 64, 0,0,0,0,0}
++const VAImageFormat m_supportedImageformatsG11[] =
++{   {VA_FOURCC_BGRA,   VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0xff000000},
++    {VA_FOURCC_ARGB,   VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0xff000000},
++    {VA_FOURCC_RGBA,   VA_LSB_FIRST,   32, 24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0xff000000},
++    {VA_FOURCC_ABGR,   VA_LSB_FIRST,   32, 24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0xff000000},
++    {VA_FOURCC_BGRX,   VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0},
++    {VA_FOURCC_XRGB,   VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0},
++    {VA_FOURCC_RGBX,   VA_LSB_FIRST,   32, 24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0},
++    {VA_FOURCC_XBGR,   VA_LSB_FIRST,   32, 24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0},
++    {VA_FOURCC_RGBP,   VA_LSB_FIRST,   24, 24, 0xff0000,   0x00ff00,   0x0000ff,    0},
++    {VA_FOURCC_RGB565, VA_LSB_FIRST,   16, 16, 0xf800,     0x07e0,     0x001f,      0},
++    {VA_FOURCC_AYUV,   VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0xff000000},
++    {VA_FOURCC_NV12,   VA_LSB_FIRST,   12, 0,0,0,0,0},
++    {VA_FOURCC_NV21,   VA_LSB_FIRST,   12, 0,0,0,0,0},
++    {VA_FOURCC_YUY2,   VA_LSB_FIRST,   16, 0,0,0,0,0},
++    {VA_FOURCC_UYVY,   VA_LSB_FIRST,   16, 0,0,0,0,0},
++    {VA_FOURCC_YV12,   VA_LSB_FIRST,   12, 0,0,0,0,0},
++    {VA_FOURCC_I420,   VA_LSB_FIRST,   12, 0,0,0,0,0},
++    {VA_FOURCC_422H,   VA_LSB_FIRST,   16, 0,0,0,0,0},
++    {VA_FOURCC_422V,   VA_LSB_FIRST,   16, 0,0,0,0,0},
++    {VA_FOURCC_444P,   VA_LSB_FIRST,   24, 0,0,0,0,0},
++    {VA_FOURCC_IMC3,   VA_LSB_FIRST,   16, 0,0,0,0,0},
++    {VA_FOURCC_P010,   VA_LSB_FIRST,   24, 0,0,0,0,0},
++    {VA_FOURCC_Y210,   VA_LSB_FIRST,   32, 0,0,0,0,0},
++    {VA_FOURCC_Y410,   VA_LSB_FIRST,   32, 0,0,0,0,0}
+ };
+ 
+ const VAConfigAttribValEncRateControlExt MediaLibvaCapsG11::m_encVp9RateControlExt =
+@@ -49,21 +70,21 @@ VAStatus MediaLibvaCapsG11::QueryImageFormats(VAImageFormat *formatList, int32_t
+ {
+     DDI_CHK_NULL(formatList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+     DDI_CHK_NULL(numFormats, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+-    MediaLibvaCaps::QueryImageFormats(formatList, numFormats);
+ 
+-    int32_t num = *numFormats;
+-    uint32_t numG11ImageFormats = GetNumG11ImageFormats();
++    int32_t num = 0;
++    uint32_t maxNum = GetImageFormatsMaxNum();
+ 
+-    for (int32_t idx = 0; idx < numG11ImageFormats; idx++)
++    memset(formatList, 0,  sizeof(m_supportedImageformatsG11));
++    for (uint32_t idx = 0; idx < maxNum; idx++)
+     {
+-        formatList[num].fourcc           = m_G11ImageFormats[idx].fourcc;
+-        formatList[num].byte_order       = m_G11ImageFormats[idx].byte_order;
+-        formatList[num].bits_per_pixel   = m_G11ImageFormats[idx].bits_per_pixel;
+-        formatList[num].depth            = m_G11ImageFormats[idx].depth;
+-        formatList[num].red_mask         = m_G11ImageFormats[idx].red_mask;
+-        formatList[num].green_mask       = m_G11ImageFormats[idx].green_mask;
+-        formatList[num].blue_mask        = m_G11ImageFormats[idx].blue_mask;
+-        formatList[num].alpha_mask       = m_G11ImageFormats[idx].alpha_mask;
++        formatList[num].fourcc           = m_supportedImageformatsG11[idx].fourcc;
++        formatList[num].byte_order       = m_supportedImageformatsG11[idx].byte_order;
++        formatList[num].bits_per_pixel   = m_supportedImageformatsG11[idx].bits_per_pixel;
++        formatList[num].depth            = m_supportedImageformatsG11[idx].depth;
++        formatList[num].red_mask         = m_supportedImageformatsG11[idx].red_mask;
++        formatList[num].green_mask       = m_supportedImageformatsG11[idx].green_mask;
++        formatList[num].blue_mask        = m_supportedImageformatsG11[idx].blue_mask;
++        formatList[num].alpha_mask       = m_supportedImageformatsG11[idx].alpha_mask;
+         num++;
+     }
+     *numFormats = num;
+@@ -71,32 +92,39 @@ VAStatus MediaLibvaCapsG11::QueryImageFormats(VAImageFormat *formatList, int32_t
+     return VA_STATUS_SUCCESS;
+ }
+ 
+-uint32_t MediaLibvaCapsG11::GetNumG11ImageFormats()
++uint32_t MediaLibvaCapsG11::GetImageFormatsMaxNum()
+ {
+-    return sizeof(m_G11ImageFormats)/sizeof(m_G11ImageFormats[0]);
++    return sizeof(m_supportedImageformatsG11)/sizeof(m_supportedImageformatsG11[0]);
+ }
+ 
+-uint32_t MediaLibvaCapsG11::GetImageFormatsMaxNum()
++bool MediaLibvaCapsG11::IsImageSupported(uint32_t fourcc)
+ {
+-    return MediaLibvaCaps::GetImageFormatsMaxNum() +
+-        GetNumG11ImageFormats();
++    uint32_t maxNum = GetImageFormatsMaxNum();
++    for (int32_t idx = 0; idx < maxNum; idx++)
++    {
++        if (m_supportedImageformatsG11[idx].fourcc == fourcc)
++        {
++            return true;
++        }
++    }
++
++    return false;
+ }
+ 
+ VAStatus MediaLibvaCapsG11::PopulateColorMaskInfo(VAImageFormat *vaImgFmt)
+ {
+-    if(MediaLibvaCaps::PopulateColorMaskInfo(vaImgFmt) == VA_STATUS_SUCCESS)
+-        return VA_STATUS_SUCCESS;
++    uint32_t maxNum = GetImageFormatsMaxNum();
+ 
+-    uint32_t numG11ImageFormats = GetNumG11ImageFormats();
++    DDI_CHK_NULL(vaImgFmt, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+ 
+-    for (int32_t idx = 0; idx < numG11ImageFormats; idx++)
++    for (int32_t idx = 0; idx < maxNum; idx++)
+     {
+-        if (m_G11ImageFormats[idx].fourcc == vaImgFmt->fourcc)
++        if (m_supportedImageformatsG11[idx].fourcc == vaImgFmt->fourcc)
+         {
+-            vaImgFmt->red_mask = m_G11ImageFormats[idx].red_mask;
+-            vaImgFmt->green_mask = m_G11ImageFormats[idx].green_mask;
+-            vaImgFmt->blue_mask = m_G11ImageFormats[idx].blue_mask;
+-            vaImgFmt->alpha_mask = m_G11ImageFormats[idx].alpha_mask;
++            vaImgFmt->red_mask   = m_supportedImageformatsG11[idx].red_mask;
++            vaImgFmt->green_mask = m_supportedImageformatsG11[idx].green_mask;
++            vaImgFmt->blue_mask  = m_supportedImageformatsG11[idx].blue_mask;
++            vaImgFmt->alpha_mask = m_supportedImageformatsG11[idx].alpha_mask;
+ 
+             return VA_STATUS_SUCCESS;
+         }
+diff --git a/media_driver/linux/gen11/ddi/media_libva_caps_g11.h b/media_driver/linux/gen11/ddi/media_libva_caps_g11.h
+index 215b4fe93109..fa521c687c4e 100644
+--- a/media_driver/linux/gen11/ddi/media_libva_caps_g11.h
++++ b/media_driver/linux/gen11/ddi/media_libva_caps_g11.h
+@@ -62,6 +62,24 @@ public:
+         return LoadProfileEntrypoints();
+     }
+ 
++    virtual VAStatus QueryImageFormats(VAImageFormat *formatList, int32_t *num_formats);
++
++    virtual uint32_t GetImageFormatsMaxNum();
++
++    virtual bool IsImageSupported(uint32_t fourcc);
++
++    //!
++    //! \brief    Populate the color masks info
++    //!
++    //! \param    [in,out] Image format
++    //!           Pointer to a VAImageFormat array. Color masks information will be populated to this
++    //!           structure.
++    //!
++    //! \return   VAStatus
++    //!           VA_STATUS_SUCCESS if succeed
++    //!
++    virtual VAStatus PopulateColorMaskInfo(VAImageFormat *vaImgFmt);
++
+     //!
+     //! \brief    Return internal encode mode for given profile and entrypoint 
+     //!
+@@ -170,13 +188,6 @@ protected:
+     //!
+     VAStatus LoadHevcEncLpProfileEntrypoints();
+ 
+-    //! 
+-    //! \brief  Is P010 supported
+-    //! 
+-    //! \return true
+-    //!
+-    bool IsP010Supported() { return true; }
+-
+     //! 
+     //! \brief  Query AVC ROI maximum number
+     //! 
+@@ -193,43 +204,5 @@ protected:
+     //!     if call succeeds
+     //!
+     VAStatus QueryAVCROIMaxNum(uint32_t rcMode, bool isVdenc, uint32_t *maxNum, bool *isRoiInDeltaQP);
+-
+-    //! \brief    Query the suppported image formats
+-    //!
+-    //! \param    [in,out] formatList
+-    //!           Pointer to a VAImageFormat array. The array size shouldn't be less than vaMaxNumImageFormats 
+-    //!           It will return the supported image formats.
+-    //!
+-    //! \param    [in,out] num_formats
+-    //!           Pointer to a integer that will return the real size of formatList.
+-    //!
+-    //! \return   VAStatus
+-    //!           VA_STATUS_SUCCESS if succeed
+-    //!
+-    virtual VAStatus QueryImageFormats(VAImageFormat *formatList, int32_t *num_formats) override;
+-
+-    //! \brief    Return the maxinum number of supported image formats
+-    //!
+-    //! \return   The maxinum number of supported image formats
+-    //!
+-    virtual uint32_t GetImageFormatsMaxNum();
+-
+-    //! \brief    Return the number of supported image formats for Gen 12
+-    //!
+-    //! \return   The number of supported image formats for Gen 12
+-    //!
+-    uint32_t GetNumG11ImageFormats();
+-
+-    //!
+-    //! \brief    Populate the color masks info
+-    //!
+-    //! \param    [in,out] Image format
+-    //!           Pointer to a VAImageFormat array. Color masks information will be populated to this
+-    //!           structure.
+-    //!
+-    //! \return   VAStatus
+-    //!           VA_STATUS_SUCCESS if succeed
+-    //!
+-    virtual VAStatus PopulateColorMaskInfo(VAImageFormat *vaImgFmt);
+ };
+ #endif
+diff --git a/media_driver/linux/gen8/ddi/media_libva_caps_g8.cpp b/media_driver/linux/gen8/ddi/media_libva_caps_g8.cpp
+index f98df2011d00..f5b830bbc1ef 100644
+--- a/media_driver/linux/gen8/ddi/media_libva_caps_g8.cpp
++++ b/media_driver/linux/gen8/ddi/media_libva_caps_g8.cpp
+@@ -30,6 +30,94 @@
+ #include "media_libva_caps_g8.h"
+ #include "media_libva_caps_factory.h"
+ 
++const VAImageFormat m_supportedImageformatsG8[] =
++{   {VA_FOURCC_BGRA,   VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0xff000000},
++    {VA_FOURCC_ARGB,   VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0xff000000},
++    {VA_FOURCC_RGBA,   VA_LSB_FIRST,   32, 24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0xff000000},
++    {VA_FOURCC_ABGR,   VA_LSB_FIRST,   32, 24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0xff000000},
++    {VA_FOURCC_BGRX,   VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0},
++    {VA_FOURCC_XRGB,   VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0},
++    {VA_FOURCC_RGBX,   VA_LSB_FIRST,   32, 24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0},
++    {VA_FOURCC_XBGR,   VA_LSB_FIRST,   32, 24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0},
++    {VA_FOURCC_RGB565, VA_LSB_FIRST,   16, 16, 0xf800,     0x07e0,     0x001f,      0},
++    {VA_FOURCC_NV12,   VA_LSB_FIRST,   12, 0,0,0,0,0},
++    {VA_FOURCC_NV21,   VA_LSB_FIRST,   12, 0,0,0,0,0},
++    {VA_FOURCC_YUY2,   VA_LSB_FIRST,   16, 0,0,0,0,0},
++    {VA_FOURCC_UYVY,   VA_LSB_FIRST,   16, 0,0,0,0,0},
++    {VA_FOURCC_YV12,   VA_LSB_FIRST,   12, 0,0,0,0,0},
++    {VA_FOURCC_I420,   VA_LSB_FIRST,   12, 0,0,0,0,0},
++    {VA_FOURCC_422H,   VA_LSB_FIRST,   16, 0,0,0,0,0},
++    {VA_FOURCC_422V,   VA_LSB_FIRST,   16, 0,0,0,0,0},
++    {VA_FOURCC_444P,   VA_LSB_FIRST,   24, 0,0,0,0,0},
++    {VA_FOURCC_IMC3,   VA_LSB_FIRST,   16, 0,0,0,0,0}
++};
++
++VAStatus MediaLibvaCapsG8::QueryImageFormats(VAImageFormat *formatList, int32_t *numFormats)
++{
++    DDI_CHK_NULL(formatList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
++    DDI_CHK_NULL(numFormats, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
++    int32_t num = 0;
++    uint32_t maxNum = GetImageFormatsMaxNum();
++
++    memset(formatList, 0,  sizeof(m_supportedImageformatsG8));
++    for (uint32_t idx = 0; idx < maxNum; idx++)
++    {
++        formatList[num].fourcc           = m_supportedImageformatsG8[idx].fourcc;
++        formatList[num].byte_order       = m_supportedImageformatsG8[idx].byte_order;
++        formatList[num].bits_per_pixel   = m_supportedImageformatsG8[idx].bits_per_pixel;
++        formatList[num].depth            = m_supportedImageformatsG8[idx].depth;
++        formatList[num].red_mask         = m_supportedImageformatsG8[idx].red_mask;
++        formatList[num].green_mask       = m_supportedImageformatsG8[idx].green_mask;
++        formatList[num].blue_mask        = m_supportedImageformatsG8[idx].blue_mask;
++        formatList[num].alpha_mask       = m_supportedImageformatsG8[idx].alpha_mask;
++        num++;
++    }
++    *numFormats = num;
++
++    return VA_STATUS_SUCCESS;
++}
++
++uint32_t MediaLibvaCapsG8::GetImageFormatsMaxNum()
++{
++    return sizeof(m_supportedImageformatsG8)/sizeof(m_supportedImageformatsG8[0]);
++}
++
++bool MediaLibvaCapsG8::IsImageSupported(uint32_t fourcc)
++{
++    uint32_t maxNum = GetImageFormatsMaxNum();
++    for (int32_t idx = 0; idx < maxNum; idx++)
++    {
++        if (m_supportedImageformatsG8[idx].fourcc == fourcc)
++        {
++            return true;
++        }
++    }
++
++    return false;
++}
++
++VAStatus MediaLibvaCapsG8::PopulateColorMaskInfo(VAImageFormat *vaImgFmt)
++{
++    uint32_t maxNum = GetImageFormatsMaxNum();
++
++    DDI_CHK_NULL(vaImgFmt, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
++
++    for (int32_t idx = 0; idx < maxNum; idx++)
++    {
++        if (m_supportedImageformatsG8[idx].fourcc == vaImgFmt->fourcc)
++        {
++            vaImgFmt->red_mask   = m_supportedImageformatsG8[idx].red_mask;
++            vaImgFmt->green_mask = m_supportedImageformatsG8[idx].green_mask;
++            vaImgFmt->blue_mask  = m_supportedImageformatsG8[idx].blue_mask;
++            vaImgFmt->alpha_mask = m_supportedImageformatsG8[idx].alpha_mask;
++
++            return VA_STATUS_SUCCESS;
++        }
++    }
++
++    return VA_STATUS_ERROR_INVALID_IMAGE_FORMAT;
++}
++
+ VAStatus MediaLibvaCapsG8::GetPlatformSpecificAttrib(
+         VAProfile profile,
+         VAEntrypoint entrypoint,
+diff --git a/media_driver/linux/gen8/ddi/media_libva_caps_g8.h b/media_driver/linux/gen8/ddi/media_libva_caps_g8.h
+index eefb0a50a2df..c533c30d47a4 100644
+--- a/media_driver/linux/gen8/ddi/media_libva_caps_g8.h
++++ b/media_driver/linux/gen8/ddi/media_libva_caps_g8.h
+@@ -45,6 +45,14 @@ public:
+         return;
+     }
+ 
++    virtual VAStatus QueryImageFormats(VAImageFormat *formatList, int32_t *num_formats);
++
++    virtual uint32_t GetImageFormatsMaxNum();
++
++    virtual bool IsImageSupported(uint32_t fourcc);
++
++    virtual VAStatus PopulateColorMaskInfo(VAImageFormat *vaImgFmt);
++
+ protected:
+     virtual VAStatus GetPlatformSpecificAttrib(
+             VAProfile profile,
+@@ -60,13 +68,6 @@ protected:
+     //!
+     VAStatus LoadProfileEntrypoints();
+ 
+-    //! 
+-    //! \brief  Is P010 supported
+-    //! 
+-    //! \return false
+-    //!
+-    bool IsP010Supported() { return false; };
+-
+     //! 
+     //! \brief  Query AVC ROI maximum number
+     //! 
+diff --git a/media_driver/linux/gen9/ddi/media_libva_caps_g9.cpp b/media_driver/linux/gen9/ddi/media_libva_caps_g9.cpp
+index a3947114009a..f81ef6cf8998 100644
+--- a/media_driver/linux/gen9/ddi/media_libva_caps_g9.cpp
++++ b/media_driver/linux/gen9/ddi/media_libva_caps_g9.cpp
+@@ -30,6 +30,96 @@
+ #include "media_libva_caps_g9.h"
+ #include "media_libva_caps_factory.h"
+ 
++const VAImageFormat m_supportedImageformatsG9[] =
++{   {VA_FOURCC_BGRA,   VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0xff000000},
++    {VA_FOURCC_ARGB,   VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0xff000000},
++    {VA_FOURCC_RGBA,   VA_LSB_FIRST,   32, 24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0xff000000},
++    {VA_FOURCC_ABGR,   VA_LSB_FIRST,   32, 24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0xff000000},
++    {VA_FOURCC_BGRX,   VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0},
++    {VA_FOURCC_XRGB,   VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0},
++    {VA_FOURCC_RGBX,   VA_LSB_FIRST,   32, 24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0},
++    {VA_FOURCC_XBGR,   VA_LSB_FIRST,   32, 24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0},
++    {VA_FOURCC_RGBP,   VA_LSB_FIRST,   24, 24, 0xff0000,   0x00ff00,   0x0000ff,    0},
++    {VA_FOURCC_RGB565, VA_LSB_FIRST,   16, 16, 0xf800,     0x07e0,     0x001f,      0},
++    {VA_FOURCC_NV12,   VA_LSB_FIRST,   12, 0,0,0,0,0},
++    {VA_FOURCC_NV21,   VA_LSB_FIRST,   12, 0,0,0,0,0},
++    {VA_FOURCC_YUY2,   VA_LSB_FIRST,   16, 0,0,0,0,0},
++    {VA_FOURCC_UYVY,   VA_LSB_FIRST,   16, 0,0,0,0,0},
++    {VA_FOURCC_YV12,   VA_LSB_FIRST,   12, 0,0,0,0,0},
++    {VA_FOURCC_I420,   VA_LSB_FIRST,   12, 0,0,0,0,0},
++    {VA_FOURCC_422H,   VA_LSB_FIRST,   16, 0,0,0,0,0},
++    {VA_FOURCC_422V,   VA_LSB_FIRST,   16, 0,0,0,0,0},
++    {VA_FOURCC_444P,   VA_LSB_FIRST,   24, 0,0,0,0,0},
++    {VA_FOURCC_IMC3,   VA_LSB_FIRST,   16, 0,0,0,0,0},
++    {VA_FOURCC_P010,   VA_LSB_FIRST,   24, 0,0,0,0,0}
++};
++
++VAStatus MediaLibvaCapsG9::QueryImageFormats(VAImageFormat *formatList, int32_t *numFormats)
++{
++    DDI_CHK_NULL(formatList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
++    DDI_CHK_NULL(numFormats, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
++    int32_t num = 0;
++    uint32_t maxNum = GetImageFormatsMaxNum();
++
++    memset(formatList, 0,  sizeof(m_supportedImageformatsG9));
++    for (uint32_t idx = 0; idx < maxNum; idx++)
++    {
++        formatList[num].fourcc           = m_supportedImageformatsG9[idx].fourcc;
++        formatList[num].byte_order       = m_supportedImageformatsG9[idx].byte_order;
++        formatList[num].bits_per_pixel   = m_supportedImageformatsG9[idx].bits_per_pixel;
++        formatList[num].depth            = m_supportedImageformatsG9[idx].depth;
++        formatList[num].red_mask         = m_supportedImageformatsG9[idx].red_mask;
++        formatList[num].green_mask       = m_supportedImageformatsG9[idx].green_mask;
++        formatList[num].blue_mask        = m_supportedImageformatsG9[idx].blue_mask;
++        formatList[num].alpha_mask       = m_supportedImageformatsG9[idx].alpha_mask;
++        num++;
++    }
++    *numFormats = num;
++
++    return VA_STATUS_SUCCESS;
++}
++
++uint32_t MediaLibvaCapsG9::GetImageFormatsMaxNum()
++{
++    return sizeof(m_supportedImageformatsG9)/sizeof(m_supportedImageformatsG9[0]);
++}
++
++bool MediaLibvaCapsG9::IsImageSupported(uint32_t fourcc)
++{
++    uint32_t maxNum = GetImageFormatsMaxNum();
++    for (int32_t idx = 0; idx < maxNum; idx++)
++    {
++        if (m_supportedImageformatsG9[idx].fourcc == fourcc)
++        {
++            return true;
++        }
++    }
++
++    return false;
++}
++
++VAStatus MediaLibvaCapsG9::PopulateColorMaskInfo(VAImageFormat *vaImgFmt)
++{
++    uint32_t maxNum = GetImageFormatsMaxNum();
++
++    DDI_CHK_NULL(vaImgFmt, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
++
++    for (int32_t idx = 0; idx < maxNum; idx++)
++    {
++        if (m_supportedImageformatsG9[idx].fourcc == vaImgFmt->fourcc)
++        {
++            vaImgFmt->red_mask   = m_supportedImageformatsG9[idx].red_mask;
++            vaImgFmt->green_mask = m_supportedImageformatsG9[idx].green_mask;
++            vaImgFmt->blue_mask  = m_supportedImageformatsG9[idx].blue_mask;
++            vaImgFmt->alpha_mask = m_supportedImageformatsG9[idx].alpha_mask;
++
++            return VA_STATUS_SUCCESS;
++        }
++    }
++
++    return VA_STATUS_ERROR_INVALID_IMAGE_FORMAT;
++}
++
+ VAStatus MediaLibvaCapsG9::GetPlatformSpecificAttrib(VAProfile profile,
+         VAEntrypoint entrypoint,
+         VAConfigAttribType type,
+diff --git a/media_driver/linux/gen9/ddi/media_libva_caps_g9.h b/media_driver/linux/gen9/ddi/media_libva_caps_g9.h
+index 5d32ccd7fddf..b7950699dc52 100644
+--- a/media_driver/linux/gen9/ddi/media_libva_caps_g9.h
++++ b/media_driver/linux/gen9/ddi/media_libva_caps_g9.h
+@@ -49,6 +49,15 @@ public:
+         LoadProfileEntrypoints();
+         return VA_STATUS_SUCCESS;
+     }
++
++    virtual VAStatus QueryImageFormats(VAImageFormat *formatList, int32_t *num_formats);
++
++    virtual uint32_t GetImageFormatsMaxNum();
++
++    virtual bool IsImageSupported(uint32_t fourcc);
++
++    virtual VAStatus PopulateColorMaskInfo(VAImageFormat *vaImgFmt);
++
+ protected:
+     virtual VAStatus GetPlatformSpecificAttrib(VAProfile profile,
+             VAEntrypoint entrypoint,
+@@ -63,13 +72,6 @@ protected:
+     //!
+     VAStatus LoadProfileEntrypoints();
+ 
+-    //! 
+-    //! \brief  Is P010 supported
+-    //! 
+-    //! \return true
+-    //!
+-    bool IsP010Supported() { return true; }
+-
+     //! 
+     //! \brief  Query AVC ROI maximum number
+     //! 
+-- 
+2.17.1
+

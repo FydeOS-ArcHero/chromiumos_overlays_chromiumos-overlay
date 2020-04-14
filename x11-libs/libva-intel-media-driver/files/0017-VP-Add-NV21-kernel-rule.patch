@@ -1,0 +1,146 @@
+From f39c5dcf9bd86ae07776a42c3a50f6b857fc6b9e Mon Sep 17 00:00:00 2001
+From: Chen_JasonK <jason.k.chen@intel.com>
+Date: Mon, 20 May 2019 10:08:04 +0800
+Subject: [PATCH] [VP] Add NV21 kernel rule
+
+Add NV21 kernel rule for output
+
+Change-Id: I582db34173d1dab19eeb3edf8f870aace30e1f5d
+---
+ .../gen10/vp/kdll/hal_kernelrules_g10.c       | 25 +++++++++++++++++++
+ .../gen11/vp/kdll/hal_kernelrules_g11.c       | 25 +++++++++++++++++++
+ .../gen9/vp/kdll/hal_kernelrules_g9.c         | 25 +++++++++++++++++++
+ 3 files changed, 75 insertions(+)
+
+diff --git a/media_driver/agnostic/gen10/vp/kdll/hal_kernelrules_g10.c b/media_driver/agnostic/gen10/vp/kdll/hal_kernelrules_g10.c
+index 80e8845d87a9..dc6c98b2f069 100644
+--- a/media_driver/agnostic/gen10/vp/kdll/hal_kernelrules_g10.c
++++ b/media_driver/agnostic/gen10/vp/kdll/hal_kernelrules_g10.c
+@@ -2799,6 +2799,21 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g10[] =
+     { RID_SetSrc0ColorFill , ColorFill_False                     , Kdll_None },
+     { RID_SetParserState   , Parser_End                          , Kdll_None },
+ 
++    // Write NV21
++    { RID_Op_NewEntry      , RULE_DEFAULT                        , Kdll_None },
++    { RID_IsParserState    , Parser_WriteOutput                  , Kdll_None },
++    { RID_IsLayerID        , Layer_RenderTarget                  , Kdll_None },
++    { RID_IsLayerFormat    , Format_NV21                         , Kdll_None },
++    { RID_IsLayerNumber    , 0                                   , Kdll_None },
++    { RID_IsSrc0ColorFill  , ColorFill_True                      , Kdll_None },
++    { RID_SetKernel        , IDR_VP_Set_Scale_Buf_0123_Colorfill , Kdll_None },
++    { RID_SetKernel        , IDR_VP_Colorfill_444Scale16         , Kdll_None },
++    { RID_SetKernel        , IDR_VP_Set_Dest_Surf_Indexes_Primary, Kdll_None },
++    { RID_SetKernel        , IDR_VP_Save_444Scale16_NV21         , Kdll_None },
++    { RID_SetKernel        , IDR_VP_EOT                          , Kdll_None },
++    { RID_SetSrc0ColorFill , ColorFill_False                     , Kdll_None },
++    { RID_SetParserState   , Parser_End                          , Kdll_None },
++
+     // Write PL3
+     { RID_Op_NewEntry      , RULE_DEFAULT                       , Kdll_None },
+     { RID_IsParserState    , Parser_WriteOutput                 , Kdll_None },
+@@ -2960,6 +2975,16 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g10[] =
+     { RID_SetKernel        , IDR_VP_EOT                          , Kdll_None },
+     { RID_SetParserState   , Parser_End                          , Kdll_None },
+ 
++    // Write NV21 - Normal Save, Sample_8x8 not used or already shuffled
++    { RID_Op_NewEntry      , RULE_DEFAULT                        , Kdll_None },
++    { RID_IsParserState    , Parser_WriteOutput                  , Kdll_None },
++    { RID_IsLayerID        , Layer_RenderTarget                  , Kdll_None },
++    { RID_IsLayerFormat    , Format_NV21                         , Kdll_None },
++    { RID_SetKernel        , IDR_VP_Set_Dest_Surf_Indexes_Primary, Kdll_None },
++    { RID_SetKernel        , IDR_VP_Save_444Scale16_NV21         , Kdll_None },
++    { RID_SetKernel        , IDR_VP_EOT                          , Kdll_None },
++    { RID_SetParserState   , Parser_End                          , Kdll_None },
++
+     // Write PL3 - Normal Save, Sample_8x8 not used or already shuffled
+     { RID_Op_NewEntry      , RULE_DEFAULT                       , Kdll_None },
+     { RID_IsParserState    , Parser_WriteOutput                 , Kdll_None },
+diff --git a/media_driver/agnostic/gen11/vp/kdll/hal_kernelrules_g11.c b/media_driver/agnostic/gen11/vp/kdll/hal_kernelrules_g11.c
+index 1d89ed831073..645bfa91bfca 100644
+--- a/media_driver/agnostic/gen11/vp/kdll/hal_kernelrules_g11.c
++++ b/media_driver/agnostic/gen11/vp/kdll/hal_kernelrules_g11.c
+@@ -3711,6 +3711,21 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
+     { RID_SetSrc0ColorFill , ColorFill_False                     , Kdll_None },
+     { RID_SetParserState   , Parser_End                          , Kdll_None },
+ 
++    // Write NV21
++    { RID_Op_NewEntry      , RULE_DEFAULT                        , Kdll_None },
++    { RID_IsParserState    , Parser_WriteOutput                  , Kdll_None },
++    { RID_IsLayerID        , Layer_RenderTarget                  , Kdll_None },
++    { RID_IsLayerFormat    , Format_NV21                         , Kdll_None },
++    { RID_IsLayerNumber    , 0                                   , Kdll_None },
++    { RID_IsSrc0ColorFill  , ColorFill_True                      , Kdll_None },
++    { RID_SetKernel        , IDR_VP_Set_Scale_Buf_0123_Colorfill , Kdll_None },
++    { RID_SetKernel        , IDR_VP_Colorfill_444Scale16         , Kdll_None },
++    { RID_SetKernel        , IDR_VP_Set_Dest_Surf_Indexes_Primary, Kdll_None },
++    { RID_SetKernel        , IDR_VP_Save_444Scale16_NV21         , Kdll_None },
++    { RID_SetKernel        , IDR_VP_EOT                          , Kdll_None },
++    { RID_SetSrc0ColorFill , ColorFill_False                     , Kdll_None },
++    { RID_SetParserState   , Parser_End                          , Kdll_None },
++
+     // Write PL3
+     { RID_Op_NewEntry      , RULE_DEFAULT                       , Kdll_None },
+     { RID_IsParserState    , Parser_WriteOutput                 , Kdll_None },
+@@ -3883,6 +3898,16 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g11[] =
+     { RID_SetKernel        , IDR_VP_EOT                          , Kdll_None },
+     { RID_SetParserState   , Parser_End                          , Kdll_None },
+ 
++    // Write NV21 - Normal Save, Sample_8x8 not used or already shuffled
++    { RID_Op_NewEntry      , RULE_DEFAULT                        , Kdll_None },
++    { RID_IsParserState    , Parser_WriteOutput                  , Kdll_None },
++    { RID_IsLayerID        , Layer_RenderTarget                  , Kdll_None },
++    { RID_IsLayerFormat    , Format_NV21                         , Kdll_None },
++    { RID_SetKernel        , IDR_VP_Set_Dest_Surf_Indexes_Primary, Kdll_None },
++    { RID_SetKernel        , IDR_VP_Save_444Scale16_NV21         , Kdll_None },
++    { RID_SetKernel        , IDR_VP_EOT                          , Kdll_None },
++    { RID_SetParserState   , Parser_End                          , Kdll_None },
++
+     // Write PL3 - Normal Save, Sample_8x8 not used or already shuffled
+     { RID_Op_NewEntry      , RULE_DEFAULT                       , Kdll_None },
+     { RID_IsParserState    , Parser_WriteOutput                 , Kdll_None },
+diff --git a/media_driver/agnostic/gen9/vp/kdll/hal_kernelrules_g9.c b/media_driver/agnostic/gen9/vp/kdll/hal_kernelrules_g9.c
+index 45162fb34e30..35f4749af056 100644
+--- a/media_driver/agnostic/gen9/vp/kdll/hal_kernelrules_g9.c
++++ b/media_driver/agnostic/gen9/vp/kdll/hal_kernelrules_g9.c
+@@ -3548,6 +3548,21 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g9[] =
+     { RID_SetSrc0ColorFill , ColorFill_False                     , Kdll_None },
+     { RID_SetParserState   , Parser_End                          , Kdll_None },
+ 
++    // Write NV21
++    { RID_Op_NewEntry      , RULE_DEFAULT                        , Kdll_None },
++    { RID_IsParserState    , Parser_WriteOutput                  , Kdll_None },
++    { RID_IsLayerID        , Layer_RenderTarget                  , Kdll_None },
++    { RID_IsLayerFormat    , Format_NV21                         , Kdll_None },
++    { RID_IsLayerNumber    , 0                                   , Kdll_None },
++    { RID_IsSrc0ColorFill  , ColorFill_True                      , Kdll_None },
++    { RID_SetKernel        , IDR_VP_Set_Scale_Buf_0123_Colorfill , Kdll_None },
++    { RID_SetKernel        , IDR_VP_Colorfill_444Scale16         , Kdll_None },
++    { RID_SetKernel        , IDR_VP_Set_Dest_Surf_Indexes_Primary, Kdll_None },
++    { RID_SetKernel        , IDR_VP_Save_444Scale16_NV21         , Kdll_None },
++    { RID_SetKernel        , IDR_VP_EOT                          , Kdll_None },
++    { RID_SetSrc0ColorFill , ColorFill_False                     , Kdll_None },
++    { RID_SetParserState   , Parser_End                          , Kdll_None },
++
+     // Write 444P
+     { RID_Op_NewEntry      , RULE_DEFAULT                        , Kdll_None },
+     { RID_IsParserState    , Parser_WriteOutput                  , Kdll_None },
+@@ -3743,6 +3758,16 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g9[] =
+     { RID_SetKernel        , IDR_VP_EOT                          , Kdll_None },
+     { RID_SetParserState   , Parser_End                          , Kdll_None },
+ 
++    // Write NV21 - Normal Save, Sample_8x8 not used or already shuffled
++    { RID_Op_NewEntry      , RULE_DEFAULT                        , Kdll_None },
++    { RID_IsParserState    , Parser_WriteOutput                  , Kdll_None },
++    { RID_IsLayerID        , Layer_RenderTarget                  , Kdll_None },
++    { RID_IsLayerFormat    , Format_NV21                         , Kdll_None },
++    { RID_SetKernel        , IDR_VP_Set_Dest_Surf_Indexes_Primary, Kdll_None },
++    { RID_SetKernel        , IDR_VP_Save_444Scale16_NV21         , Kdll_None },
++    { RID_SetKernel        , IDR_VP_EOT                          , Kdll_None },
++    { RID_SetParserState   , Parser_End                          , Kdll_None },
++
+     // Write 444P - Normal Save, Sample_8x8 not used or already shuffled
+     { RID_Op_NewEntry      , RULE_DEFAULT                        , Kdll_None },
+     { RID_IsParserState    , Parser_WriteOutput                  , Kdll_None },
+-- 
+2.17.1
+

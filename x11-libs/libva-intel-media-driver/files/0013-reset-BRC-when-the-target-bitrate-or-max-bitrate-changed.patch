@@ -1,0 +1,30 @@
+From dc1f132c732c493cf343331e69934b98a89b970d Mon Sep 17 00:00:00 2001
+From: XinfengZhang <carl.zhang@intel.com>
+Date: Wed, 10 Apr 2019 18:43:44 -0400
+Subject: [PATCH] reset BRC when the target bitrate or max bitrate changed
+
+Signed-off-by: XinfengZhang <carl.zhang@intel.com>
+---
+ .../linux/common/codec/ddi/media_ddi_encode_vp8.cpp      | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/media_driver/linux/common/codec/ddi/media_ddi_encode_vp8.cpp b/media_driver/linux/common/codec/ddi/media_ddi_encode_vp8.cpp
+index df8dd226d..cb52299c5 100644
+--- a/media_driver/linux/common/codec/ddi/media_ddi_encode_vp8.cpp
++++ b/media_driver/linux/common/codec/ddi/media_ddi_encode_vp8.cpp
+@@ -621,6 +621,15 @@ VAStatus DdiEncodeVp8::EncodeInCodecHal(uint32_t numSlices)
+     {
+         seqParams->RateControlMethod = 2;
+     }
++    if((m_encodeCtx->uiTargetBitRate != seqParams->TargetBitRate[0]) || (m_encodeCtx->uiMaxBitRate != seqParams-> MaxBitRate))
++    {
++        if(m_encodeCtx->uiTargetBitRate )
++        {
++            seqParams->ResetBRC = 0x1;
++        }
++        m_encodeCtx->uiTargetBitRate = seqParams->TargetBitRate[0];
++        m_encodeCtx->uiMaxBitRate = seqParams->MaxBitRate;
++    }
+ 
+     encodeParams.pSeqParams   = m_encodeCtx->pSeqParams;
+     encodeParams.pPicParams   = m_encodeCtx->pPicParams;
