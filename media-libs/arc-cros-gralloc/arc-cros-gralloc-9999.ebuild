@@ -22,7 +22,7 @@ RDEPEND="
 "
 DEPEND="
 	${RDEPEND}
-	video_cards_amdgpu? ( virtual/arc-opengles )
+	video_cards_amdgpu? ( media-libs/arc-mesa-amd )
 "
 
 src_configure() {

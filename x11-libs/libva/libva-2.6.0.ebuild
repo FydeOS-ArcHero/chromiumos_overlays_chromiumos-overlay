@@ -55,7 +55,7 @@ DEPEND="${RDEPEND}
 # as this library is not present in Chromium OS.
 PDEPEND="video_cards_nvidia? ( >=x11-libs/libva-vdpau-driver-0.7.4-r1 )
 	vdpau? ( >=x11-libs/libva-vdpau-driver-0.7.4-r1 )
-	video_cards_amdgpu? ( virtual/opengles )
+	video_cards_amdgpu? ( media-libs/mesa-amd )
 	video_cards_fglrx? (
 		|| ( >=x11-drivers/ati-drivers-14.12-r3
 			>=x11-libs/xvba-video-0.8.0-r1 )

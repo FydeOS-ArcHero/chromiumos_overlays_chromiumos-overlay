@@ -47,7 +47,7 @@ REQUIRED_USE="
 	android_aep? ( !android_gles2 !android_gles30 )
 	android_vulkan_compute_0? ( vulkan )
 	cheets? (
-		vulkan? ( || ( video_cards_amdgpu video_cards_intel ) )
+		vulkan? ( ^^ ( video_cards_amdgpu video_cards_intel ) )
 		video_cards_amdgpu? ( llvm )
 		video_cards_llvmpipe? ( !cheets_user !cheets_user_64 )
 	)"
