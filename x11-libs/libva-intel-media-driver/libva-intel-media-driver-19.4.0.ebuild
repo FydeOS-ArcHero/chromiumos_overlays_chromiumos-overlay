@@ -61,8 +61,6 @@ src_configure() {
 	append-cxxflags "-Wno-tautological-constant-out-of-range-compare"
 	append-cxxflags "-Wno-sizeof-array-div"
 	append-cxxflags "-Wno-range-loop-analysis"
-	append-cxxflags "-Wno-range-loop-construct"
-	append-cxxflags "-Wno-non-c-typedef-for-linkage"
 
 	cmake-utils_src_configure
 }
