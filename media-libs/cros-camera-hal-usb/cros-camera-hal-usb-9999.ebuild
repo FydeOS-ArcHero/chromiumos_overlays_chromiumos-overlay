@@ -15,7 +15,7 @@ CROS_CAMERA_TESTS=(
 	"image_processor_test"
 )
 
-inherit cros-camera cros-workon platform
+inherit cros-camera cros-workon platform udev
 
 DESCRIPTION="Chrome OS USB camera HAL v3."
 
@@ -50,4 +50,5 @@ DEPEND="${RDEPEND}
 
 src_install() {
 	cros-camera_dohal "${OUT}/lib/libcamera_hal.so" usb.so
+	udev_dorules udev/99-usbcam.rules
 }
