@@ -4,11 +4,11 @@ DEPEND=chromeos-base/metrics:= dev-libs/iniparser:= cras-apm? ( media-libs/webrt
 DESCRIPTION=Google A/V Daemon
 EAPI=7
 HOMEPAGE=http://www.chromium.org
-IUSE=asan +cras-apm fuzzer generated_cros_config selinux systemd unibuild fuzzer asan coverage fuzzer msan tsan ubsan cros_host cros_workon_tree_9cc9ba62b544ef572955d520963f6ca3b4b47373
+IUSE=asan +cras-apm fuzzer generated_cros_config selinux systemd unibuild fuzzer asan coverage fuzzer msan tsan ubsan cros_host cros_workon_tree_5f05fbddae7a70f3372c4aa0ce8142902524aec3
 KEYWORDS=*
 LICENSE=BSD-Google
 PROPERTIES=live
 RDEPEND=chromeos-base/metrics:= dev-libs/iniparser:= cras-apm? ( media-libs/webrtc-apm:= ) >=media-libs/alsa-lib-1.1.6-r3:= media-libs/ladspa-sdk:= media-libs/sbc:= media-libs/speex:= >=sys-apps/dbus-1.4.12:= selinux? ( sys-libs/libselinux:= ) virtual/udev:= media-sound/alsa-utils media-plugins/alsa-plugins unibuild? ( !generated_cros_config? ( chromeos-base/chromeos-config ) generated_cros_config? ( chromeos-base/chromeos-config-bsp ) ) chromeos-base/chromeos-config-tools sys-apps/baselayout
-SLOT=0/0.0.6-r1976
+SLOT=0/0.0.6-r1977
 _eclasses_=autotools	d0e5375d47f4c809f406eb892e531513	cros-constants	bf71cd1168b6441b64a8cdbc06c36eda	cros-credentials	4fd98ebbff6a1534ca9a89547e13dc92	cros-fuzzer	b480bfcdd51a928c9a2254c6641649a2	cros-sanitizers	68fd6af9813658a590887ca09efa2444	cros-workon	a472e157d58fc9e2b928bb2c3ae2e6f2	eutils	06133990e861be0fe60c2b428fd025d9	flag-o-matic	5d5921a298e95441da2f85be419894c0	git-2	c7c0b5bffd28d4d0b3c7816c7980250f	libchrome-version	9a62429c3e83cd30e646292329521f7d	libtool	f143db5a74ccd9ca28c1234deffede96	multilib	b2f01ad412baf81650c23fcf0975fa33	systemd	71fd8d2065d102753fb9e4d20eaf3e9f	toolchain-funcs	3cb0797c46fb39c3e7c1aa9962ba6848	user	7c566af8c48023219fd63246e88d6621
-_md5_=9bb4e8f82b64bb3feba539f67014f93d
+_md5_=bd0980c8f82b75d26127d7db5176c2b9
