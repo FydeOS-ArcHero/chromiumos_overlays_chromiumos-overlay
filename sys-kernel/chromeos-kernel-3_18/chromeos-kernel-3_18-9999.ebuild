@@ -22,7 +22,7 @@ AFDO_PROFILE_VERSION="R83-13020.16-1587376332"
 # If non-empty, it overrides the value set by AFDO_PROFILE_VERSION.
 # Note: Run "ebuild-<board> /path/to/ebuild manifest" afterwards to create new
 # Manifest file.
-AFDO_FROZEN_PROFILE_VERSION=""
+AFDO_FROZEN_PROFILE_VERSION="R83-13015.0-1586166041"
 
 # This must be inherited *after* EGIT/CROS_WORKON variables defined
 inherit cros-workon cros-kernel2
