@@ -20,7 +20,7 @@ if [ -z "${FLAGS_version}" ]; then
   # Release Branch number.
   # Increment by 1 for every release build on a branch.
   # Reset to 0 when increasing release build number.
-  CHROMEOS_BRANCH=23
+  CHROMEOS_BRANCH=24
 
   # Patch number.
   # Increment by 1 in case a non-scheduled branch release build is necessary.
