@@ -1,13 +1,13 @@
+BDEPEND=dev-vcs/git
 DEFINED_PHASES=compile info install postinst prepare setup unpack
-DEPEND=media-libs/cros-camera-test dev-vcs/git
-DESCRIPTION=Dependencies for camera_HAL3 autotest
-EAPI=5
+DESCRIPTION=Dependencies for WebGL many planets deep test
+EAPI=7
 HOMEPAGE=http://www.chromium.org/
-IUSE=+autotest cros_host cros_workon_tree_75f4edc1c9cbddd61275218f7dbcb8706f1b9a43 +buildcheck autotest opengles
+IUSE=+autotest cros_host cros_workon_tree_8b2ed08788b3de69a1cff927f380de0398cfe7f4 +buildcheck autotest opengles
 KEYWORDS=*
-LICENSE=BSD-Google
+LICENSE=GPL-2
 PROPERTIES=live
-RDEPEND=media-libs/cros-camera-test ( autotest? ( >=chromeos-base/autotest-0.0.1-r3 ) )
-SLOT=0
+RDEPEND=( autotest? ( >=chromeos-base/autotest-0.0.1-r3 ) )
+SLOT=0/0.0.1-r7051
 _eclasses_=autotest	1eb16ddc463fad9d76c25c1e8e285bd4	autotest-deponly	9b1e5d19c437abea0e7c0fa90c192abd	cros-constants	bf71cd1168b6441b64a8cdbc06c36eda	cros-credentials	4fd98ebbff6a1534ca9a89547e13dc92	cros-workon	a472e157d58fc9e2b928bb2c3ae2e6f2	eutils	06133990e861be0fe60c2b428fd025d9	flag-o-matic	5d5921a298e95441da2f85be419894c0	git-2	c7c0b5bffd28d4d0b3c7816c7980250f	multilib	b2f01ad412baf81650c23fcf0975fa33	toolchain-funcs	3cb0797c46fb39c3e7c1aa9962ba6848
-_md5_=f445d97f17290761703a63aa4e46778a
+_md5_=4c7a7fbc324614ef0cda03a5aa778317
