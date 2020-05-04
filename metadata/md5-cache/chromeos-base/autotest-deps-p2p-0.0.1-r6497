@@ -3,11 +3,11 @@ DEPEND=!<chromeos-base/autotest-deps-0.0.4 dev-python/dpkt dev-vcs/git
 DESCRIPTION=Autotest p2p deps
 EAPI=5
 HOMEPAGE=http://www.chromium.org/
-IUSE=+autotest cros_host cros_workon_tree_0d0b085155710636a7bca0579c87054e15a5e320 +buildcheck autotest opengles
+IUSE=+autotest cros_host cros_workon_tree_653f59bd37cbc5f1739ac2abed109ea3205a780f +buildcheck autotest opengles
 KEYWORDS=*
 LICENSE=GPL-2
 PROPERTIES=live
 RDEPEND=!<chromeos-base/autotest-deps-0.0.4 dev-python/dpkt ( autotest? ( >=chromeos-base/autotest-0.0.1-r3 ) )
 SLOT=0
 _eclasses_=autotest	1eb16ddc463fad9d76c25c1e8e285bd4	autotest-deponly	9b1e5d19c437abea0e7c0fa90c192abd	cros-constants	bf71cd1168b6441b64a8cdbc06c36eda	cros-credentials	4fd98ebbff6a1534ca9a89547e13dc92	cros-workon	a472e157d58fc9e2b928bb2c3ae2e6f2	eutils	06133990e861be0fe60c2b428fd025d9	flag-o-matic	5d5921a298e95441da2f85be419894c0	git-2	c7c0b5bffd28d4d0b3c7816c7980250f	multilib	b2f01ad412baf81650c23fcf0975fa33	python-any-r1	4900ae970f827a22d33d41bd8b8f9ace	python-utils-r1	931c328767d245c08a16a3f87be9ce9c	toolchain-funcs	3cb0797c46fb39c3e7c1aa9962ba6848
-_md5_=37f88fe540eb02510d348aa100b659e3
+_md5_=b5c9319942397c84aaae36d49ee1627d
