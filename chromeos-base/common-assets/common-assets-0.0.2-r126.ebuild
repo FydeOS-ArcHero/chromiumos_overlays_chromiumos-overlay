@@ -24,7 +24,7 @@ IUSE="
 "
 
 # display_boot_message calls the pango-view program.
-RDEPEND="!<chromeos-base/chromeos-chrome-83.0.4103.0
+RDEPEND="
 	fonts? ( chromeos-base/chromeos-fonts )
 	x11-libs/pango"
 
