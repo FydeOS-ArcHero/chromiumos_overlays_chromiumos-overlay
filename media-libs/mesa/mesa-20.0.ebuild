@@ -6,7 +6,7 @@ EAPI=6
 
 MESON_AUTO_DEPEND=no
 
-CROS_WORKON_COMMIT="8647cdc7"
+CROS_WORKON_COMMIT="4392cf2d"
 CROS_WORKON_TREE="70ca3580767be0529cf99593c94d7d7f8ef6abac"
 
 EGIT_REPO_URI="git://anongit.freedesktop.org/mesa/mesa"
