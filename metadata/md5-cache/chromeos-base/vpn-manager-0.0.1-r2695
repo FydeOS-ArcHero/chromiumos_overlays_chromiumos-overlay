@@ -1,0 +1,14 @@
+BDEPEND=dev-vcs/git dev-vcs/git
+DEFINED_PHASES=compile configure info install setup test unpack
+DEPEND=net-dialup/ppp:= net-dialup/xl2tpd:= net-vpn/strongswan:= chromeos-base/libchrome:=[cros-debug=] cros_host? ( dev-util/gn ) dev-cpp/gtest:=
+DESCRIPTION=L2TP/IPsec VPN manager for Chromium OS
+EAPI=7
+HOMEPAGE=http://www.chromium.org/
+IUSE=cros_host cros_workon_tree_dea48af07754556aac092c0830de0b1ab410077b_0d139b712c27e4a2ef02561fef4c31eed409fb31_e7dba8c91c1f3257c34d4a7ffff0ea2537aeb6bb cros-debug fuzzer asan coverage fuzzer msan tsan ubsan cros_host cros_workon_tree_dea48af07754556aac092c0830de0b1ab410077b_0d139b712c27e4a2ef02561fef4c31eed409fb31_e7dba8c91c1f3257c34d4a7ffff0ea2537aeb6bb cros-debug cros_host test
+KEYWORDS=*
+LICENSE=BSD-Google
+PROPERTIES=live live
+RDEPEND=net-dialup/ppp:= net-dialup/xl2tpd:= net-vpn/strongswan:= chromeos-base/libchrome:=[cros-debug=] chromeos-base/libbrillo:=
+SLOT=0/0.0.1-r2695
+_eclasses_=cros-constants	bf71cd1168b6441b64a8cdbc06c36eda	cros-credentials	4fd98ebbff6a1534ca9a89547e13dc92	cros-debug	d2750757005d6a444f8eb12bb9eb9944	cros-fuzzer	b480bfcdd51a928c9a2254c6641649a2	cros-sanitizers	68fd6af9813658a590887ca09efa2444	cros-workon	a472e157d58fc9e2b928bb2c3ae2e6f2	eutils	06133990e861be0fe60c2b428fd025d9	flag-o-matic	5d5921a298e95441da2f85be419894c0	git-2	c7c0b5bffd28d4d0b3c7816c7980250f	libchrome	264ee4961c194da1b60bf0cc373161bc	libchrome-version	9a62429c3e83cd30e646292329521f7d	multilib	b2f01ad412baf81650c23fcf0975fa33	multiprocessing	e32940a7b2a9992ad217eccddb84d548	platform	95366e64a66d9dfb640463729d95b745	toolchain-funcs	3cb0797c46fb39c3e7c1aa9962ba6848
+_md5_=ca7737a7420a07235025eddede084fa7
