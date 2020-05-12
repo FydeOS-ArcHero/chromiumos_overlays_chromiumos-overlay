@@ -34,6 +34,12 @@ DEPEND="
 	sys-libs/ncurses sys-libs/readline"
 RDEPEND="${DEPEND}"
 
+src_prepare() {
+	# This allows board specific dptf config override.
+	eapply "${FILESDIR}"/fix-board-specific-override.patch
+	eapply_user
+}
+
 src_configure() {
 	# cmake configuration for DPTF policy shared libraries
 	# TODO(crbug.com/1044735): Temporary disable the warning. Remove when fixed.
