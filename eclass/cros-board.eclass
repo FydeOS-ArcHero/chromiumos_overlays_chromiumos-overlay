@@ -34,6 +34,7 @@ ALL_BOARDS=(
 	amd64-generic-cheets
 	amd64-generic-goofy
 	amd64-generic_embedded
+	amd64-anbox-generic
 	#amd64-generic_freon
 	#amd64-generic_mobbuild
 	amd64-host
